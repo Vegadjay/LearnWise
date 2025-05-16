@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '@/components/layout/AppLayout';
@@ -48,12 +49,11 @@ const DashboardPage = () => {
     const parsedToken = localToken ? JSON.parse(localToken) : null;
     setAvatar(parsedToken?.avatar);
     setUsername(parsedToken?.name);
-    setBanner(parsedToken?.banner);
+    setBanner(parsedToken?.banner || '/assets/default-banner.jpg');
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Simulated streak count
   const streakCount = 15;
 
   useEffect(() => {
@@ -142,14 +142,6 @@ const DashboardPage = () => {
     { day: 'Sun', minutes: 55 },
   ];
 
-  const studyBuddies = [
-    { name: "Alex", avatar: "/api/placeholder/40/40", online: true },
-    { name: "Sarah", avatar: "/api/placeholder/40/40", online: true },
-    { name: "Mike", avatar: "/api/placeholder/40/40", online: false },
-    { name: "Jen", avatar: "/api/placeholder/40/40", online: true },
-  ];
-
-  // Animation variants for staggered animations
   const containerVariants = {
     hidden: { opacity: 0 },
     show: {
@@ -199,10 +191,34 @@ const DashboardPage = () => {
     setShowStatusMenu(false);
   };
 
+  // Enhanced card animation variants
+  const cardHoverVariants = {
+    initial: { y: 0, scale: 1, boxShadow: "0 1px 3px rgba(0,0,0,0.1)" },
+    hover: {
+      y: -10,
+      scale: 1.03,
+      boxShadow: "0 12px 24px rgba(0,0,0,0.15)",
+      transition: {
+        type: "spring",
+        stiffness: 400,
+        damping: 10
+      }
+    }
+  };
+
+  // Handle navigation with proper link checking
+  const handleNavigation = (path) => {
+    if (!path || path === '#') {
+      console.warn("Invalid navigation path:", path);
+      return;
+    }
+    navigate(path);
+  };
+
   return (
     <AppLayout>
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        {/* Hero Section with Avatar */}
+        {/* Hero Section with Banner and Avatar */}
         <motion.div
           ref={heroSectionRef}
           className="mb-6 sm:mb-10 bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/5 p-4 sm:p-8 rounded-xl border border-primary/10 relative overflow-hidden"
@@ -210,7 +226,21 @@ const DashboardPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
         >
-          <div className="max-w-4xl mx-auto relative">
+          {/* Banner Image - New addition */}
+          <div
+            className="absolute top-0 left-0 right-0 h-full sm:h-40 md:h-48 bg-cover bg-center rounded-t-xl overflow-hidden"
+            style={{
+              backgroundImage: `url(${banner})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              filter: 'brightness(0.9)'
+            }}
+          >
+            {/* Overlay gradient for better text visibility */}
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/50"></div>
+          </div>
+
+          <div className="max-w-4xl mx-auto relative mt-16 sm:mt-24">
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-8">
               {/* Avatar with status */}
               <motion.div
@@ -229,8 +259,11 @@ const DashboardPage = () => {
                     whileHover={{ scale: 1.05 }}
                     transition={{ type: "spring", stiffness: 400, damping: 10 }}
                   >
-                    <Avatar className="w-20 w-20 sm:w-24 sm:h-24 border-4 border-background shadow-xl">
+                    <Avatar className="w-20 h-20 sm:w-24 sm:h-24 border-4 border-background shadow-xl">
                       <AvatarImage src={`${avatar}`} alt="Profile" />
+                      <AvatarFallback>
+                        {username ? username.charAt(0).toUpperCase() : 'U'}
+                      </AvatarFallback>
                     </Avatar>
                     <div
                       className="absolute -inset-1 rounded-full bg-gradient-to-r from-primary/30 via-secondary/30 to-primary/30 blur-md -z-10 opacity-70 group-hover:opacity-100 animate-pulse"
@@ -333,7 +366,7 @@ const DashboardPage = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
                 >
-                  Welcome back, {username}
+                  Welcome back, {username || 'Student'}
                 </motion.h1>
                 <motion.p
                   className="text-base sm:text-lg md:text-xl text-muted-foreground mb-4"
@@ -356,7 +389,7 @@ const DashboardPage = () => {
                     className="relative group"
                   >
                     <Button
-                      onClick={() => navigate('/flashcards')}
+                      onClick={() => handleNavigation('/flashcards')}
                       size={isMobile ? "default" : "lg"}
                       className="gap-2 bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity shadow-md relative z-10"
                     >
@@ -372,7 +405,7 @@ const DashboardPage = () => {
                   >
                     <Button
                       variant="outline"
-                      onClick={() => navigate('/profile')}
+                      onClick={() => handleNavigation('/profile')}
                       size={isMobile ? "default" : "lg"}
                       className="gap-2 border-primary/20 hover:border-primary/50 transition-colors relative z-10"
                     >
@@ -441,17 +474,28 @@ const DashboardPage = () => {
               <motion.div
                 key={feature.title}
                 variants={itemVariants}
-                whileHover={{ scale: 1.05, y: -5 }}
-                transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                whileHover="hover"
+                initial="initial"
+                variants={cardHoverVariants}
                 className="transition-all duration-300"
                 ref={cardsRefs.current[index]}
               >
                 <Card className="h-full border border-muted/60 bg-background/50 backdrop-blur-sm hover:shadow-lg hover:border-primary/20 transition-all relative overflow-hidden group">
-                  {/* Mouse position based glow effect */}
+                  {/* Enhanced mouse position based glow effect */}
                   <div
                     className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
                     style={{
-                      background: `radial-gradient(400px circle at ${glowPosition.x} ${glowPosition.y}, ${feature.glowColor})`,
+                      background: `radial-gradient(500px circle at ${glowPosition.x} ${glowPosition.y}, ${feature.glowColor})`,
+                    }}
+                  />
+
+                  {/* Shimmer effect on hover - new addition */}
+                  <div
+                    className="absolute inset-0 opacity-0 group-hover:opacity-30 pointer-events-none"
+                    style={{
+                      background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
+                      backgroundSize: '200% 100%',
+                      animation: 'shimmer 2s infinite',
                     }}
                   />
 
@@ -505,7 +549,7 @@ const DashboardPage = () => {
                       <Button
                         variant="outline"
                         className="w-full group bg-background/80 hover:bg-background/60 text-xs sm:text-sm backdrop-blur-sm z-10"
-                        onClick={() => navigate(feature.link)}
+                        onClick={() => handleNavigation(feature.link)}
                       >
                         <span>Open {feature.title}</span>
                         <motion.span
@@ -531,11 +575,16 @@ const DashboardPage = () => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.4 }}
             className="md:col-span-2"
-            whileHover={{ y: -5 }}
+            whileHover={cardHoverVariants.hover}
+            initial={cardHoverVariants.initial}
           >
             <Card className="h-full relative group overflow-hidden">
-              {/* Glow effect for the card on hover */}
+              {/* Enhanced Glow effect for the card on hover */}
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-500 bg-gradient-to-tr from-primary/5 via-transparent to-primary/10"></div>
+
+              {/* Subtle animated pattern overlay - new addition */}
+              <div className="absolute inset-0 bg-grid-pattern opacity-0 group-hover:opacity-5 transition-opacity duration-300 pointer-events-none"></div>
+
               <CardHeader className="flex flex-row items-center justify-between pb-2 relative z-10">
                 <div>
                   <CardTitle className="text-base sm:text-lg flex items-center gap-2">
