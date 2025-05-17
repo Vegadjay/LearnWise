@@ -180,6 +180,10 @@ const CourseCatalog: React.FC<CourseCatalogProps> = ({ onCourseClick }) => {
     return result;
   }, [searchQuery, filters, sortBy]);
   
+  const handleCourseClick = (courseId: string) => {
+    onCourseClick(courseId);
+  };
+
   const toggleTopicFilter = (topic: string) => {
     setFilters(prev => {
       if (prev.topic.includes(topic)) {
@@ -378,7 +382,7 @@ const CourseCatalog: React.FC<CourseCatalogProps> = ({ onCourseClick }) => {
                 perspective: 1000,
               }}
             >
-              <CourseCard course={course} onCourseClick={onCourseClick} />
+              <CourseCard key={course.id} course={course} onClick={handleCourseClick} />
             </motion.div>
           ))}
         </motion.div>

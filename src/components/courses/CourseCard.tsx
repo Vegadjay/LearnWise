@@ -9,9 +9,10 @@ import { cn } from '@/lib/utils';
 
 interface CourseCardProps {
   course: Course;
+  onClick?: (courseId: string) => void;
 }
 
-const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
+const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
   // Convert duration to hours and minutes
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
@@ -82,7 +83,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
           <Clock className="h-4 w-4 mr-1" />
           {formatDuration(course.duration)}
         </div>
-        <Button size="sm">View Course</Button>
+        <Button size="sm" onClick={() => onClick?.(course.id)}>View Course</Button>
       </CardFooter>
     </Card>
   );
