@@ -28,6 +28,39 @@ const DashboardPage = () => {
   const heroSectionRef = useRef(null);
   const cardsRefs = useRef([]);
 
+  const [upcomingAssignments, setUpcomingAssignments] = useState([
+    { 
+      id: 1,
+      title: "Advanced Mathematics Quiz", 
+      dueDate: "Tomorrow", 
+      urgency: "high", 
+      subject: "Mathematics", 
+      icon: <BookOpen className="h-4 w-4" />,
+      link: "https://example.com/math-quiz"
+    },
+    { 
+      id: 2,
+      title: "Physics Lab Report", 
+      dueDate: "3 days", 
+      urgency: "medium", 
+      subject: "Physics", 
+      icon: <GraduationCap className="h-4 w-4" />,
+      link: "https://example.com/physics-lab"
+    },
+    { 
+      id: 3,
+      title: "Programming Challenge", 
+      dueDate: "1 week", 
+      urgency: "low", 
+      subject: "Computer Science", 
+      icon: <CheckSquare className="h-4 w-4" />,
+      link: "https://example.com/programming-challenge"
+    },
+  ]);
+
+  const [showAssignmentModal, setShowAssignmentModal] = useState(false);
+  const [selectedAssignment, setSelectedAssignment] = useState(null);
+
   useEffect(() => {
     const handleMouseMove = (e) => {
       setMousePosition({ x: e.clientX, y: e.clientY });
@@ -88,7 +121,7 @@ const DashboardPage = () => {
       link: "/flashcards",
       color: "bg-edu-indigo-50 text-edu-indigo-600 dark:bg-edu-indigo-900/30 dark:text-edu-indigo-300",
       glowColor: "from-indigo-500/30 via-indigo-500/5 to-transparent",
-      stats: "250 cards",
+      stats: "250 Questions",
       progress: 65,
     },
     {
@@ -128,12 +161,6 @@ const DashboardPage = () => {
     { activity: "Mastered React Basics Quiz", date: "Yesterday", icon: <GraduationCap className="h-4 w-4" /> },
     { activity: "Added new study habit", date: "2 days ago", icon: <CheckSquare className="h-4 w-4" /> },
     { activity: "Enrolled in Python Course", date: "1 week ago", icon: <TrendingUp className="h-4 w-4" /> },
-  ];
-
-  const upcomingAssignments = [
-    { title: "Advanced Mathematics Quiz", dueDate: "Tomorrow", urgency: "high", subject: "Mathematics", icon: <BookOpen className="h-4 w-4" /> },
-    { title: "Physics Lab Report", dueDate: "3 days", urgency: "medium", subject: "Physics", icon: <GraduationCap className="h-4 w-4" /> },
-    { title: "Programming Challenge", dueDate: "1 week", urgency: "low", subject: "Computer Science", icon: <CheckSquare className="h-4 w-4" /> },
   ];
 
   const weeklyData = [
@@ -196,6 +223,52 @@ const DashboardPage = () => {
       return;
     }
     navigate(path);
+  };
+
+  const handleMarkAsDone = (assignmentId) => {
+    setUpcomingAssignments(prev => 
+      prev.filter(assignment => assignment.id !== assignmentId)
+    );
+  };
+
+  const handleOpenAssignment = (assignment) => {
+    setSelectedAssignment(assignment);
+    setShowAssignmentModal(true);
+  };
+
+  const AssignmentModal = ({ isOpen, onClose, assignment }) => {
+    if (!isOpen || !assignment) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="bg-background p-6 rounded-lg shadow-lg max-w-md w-full mx-4">
+          <h3 className="text-lg font-semibold mb-4">{assignment.title}</h3>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Subject: {assignment.subject}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Due: {assignment.dueDate}
+            </p>
+            <div className="flex flex-col gap-2">
+              <Button 
+                className="w-full"
+                onClick={() => window.open(assignment.link, '_blank')}
+              >
+                Open Assignment Link
+              </Button>
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={onClose}
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -374,7 +447,7 @@ const DashboardPage = () => {
                   variant="outline"
                   onClick={() => handleNavigation('/profile')}
                   size={isMobile ? "default" : "lg"}
-                  className="gap-2 border-primary/20 hover:border-primary/50 transition-colors relative z-10"
+                  className="gap-2 border-primary/20 hover:border-primary/50 transition-colors relative z-10 hover:bg-primary/5 hover:text-primary/80 dark:hover:text-primary"
                 >
                   <Activity className="h-4 w-4" /> View Progress
                 </Button>
@@ -472,11 +545,11 @@ const DashboardPage = () => {
                     >
                       <Button
                         variant="ghost"
-                        className="w-full justify-between bg-muted/50 hover:bg-muted group-hover:border-primary/20"
+                        className="w-full justify-between bg-muted/50 hover:bg-muted group-hover:border-primary/20 hover:text-primary/80 dark:hover:text-primary transition-colors duration-300"
                         onClick={() => handleNavigation(feature.link)}
                       >
                         <span>Explore</span>
-                        <ChevronRight className="h-4 w-4 opacity-70" />
+                        <ChevronRight className="h-4 w-4 opacity-70 group-hover:opacity-100 transition-opacity" />
                       </Button>
                     </motion.div>
                   </CardFooter>
@@ -588,8 +661,8 @@ const DashboardPage = () => {
                 <CardFooter className="pt-4">
                   <Button
                     variant="ghost"
-                    className="w-full justify-center bg-muted/50 hover:bg-muted"
-                    onClick={() => handleNavigation('/activity')}
+                    className="w-full justify-center bg-muted/50 hover:bg-muted hover:text-primary/80 dark:hover:text-primary transition-colors duration-300"
+                    onClick={() => handleNavigation('/progress')}
                   >
                     View all activity
                   </Button>
@@ -644,7 +717,7 @@ const DashboardPage = () => {
                 <CardFooter className="pt-4">
                   <Button
                     variant="ghost"
-                    className="w-full justify-center bg-muted/50 hover:bg-muted"
+                    className="w-full hover:text-primary/80 transition-colors duration-300 dark:hover:text-primary justify-center bg-muted/50 hover:bg-muted"
                     onClick={() => handleNavigation('/assignments')}
                   >
                     View all assignments
@@ -711,23 +784,26 @@ const DashboardPage = () => {
             <div className="space-y-4">
               <h2 className="text-lg font-semibold">Upcoming Tasks</h2>
               <div className="grid grid-cols-1 gap-4">
-                {upcomingAssignments.map((assignment, i) => (
-                  <Card key={i} className="shadow-sm hover:shadow-md transition-shadow">
+                {upcomingAssignments.map((assignment) => (
+                  <Card key={assignment.id} className="shadow-sm hover:shadow-md transition-shadow">
                     <CardHeader className="pb-2">
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-base flex items-center gap-2">
-                          <div className={`p-1.5 rounded-full ${assignment.urgency === 'high' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' :
+                          <div className={`p-1.5 rounded-full ${
+                            assignment.urgency === 'high' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' :
                             assignment.urgency === 'medium' ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400' :
-                              'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
-                            }`}>
+                            'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
+                          }`}>
                             {assignment.icon}
                           </div>
                           {assignment.title}
                         </CardTitle>
-                        <Badge variant={assignment.urgency === 'high' ? 'destructive' :
-                          assignment.urgency === 'medium' ? 'warning' : 'outline'}>
+                        <Badge variant={
+                          assignment.urgency === 'high' ? 'destructive' :
+                          assignment.urgency === 'medium' ? 'warning' : 'outline'
+                        }>
                           {assignment.urgency === 'high' ? 'Urgent' :
-                            assignment.urgency === 'medium' ? 'Soon' : 'Upcoming'}
+                           assignment.urgency === 'medium' ? 'Soon' : 'Upcoming'}
                         </Badge>
                       </div>
                       <CardDescription>
@@ -735,13 +811,30 @@ const DashboardPage = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardFooter className="flex justify-end pt-0 gap-2">
-                      <Button variant="outline" size="sm">Mark as done</Button>
-                      <Button size="sm">Open assignment</Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleMarkAsDone(assignment.id)}
+                      >
+                        Mark as done
+                      </Button>
+                      <Button 
+                        size="sm"
+                        onClick={() => handleOpenAssignment(assignment)}
+                      >
+                        Open assignment
+                      </Button>
                     </CardFooter>
                   </Card>
                 ))}
               </div>
             </div>
+
+            <AssignmentModal
+              isOpen={showAssignmentModal}
+              onClose={() => setShowAssignmentModal(false)}
+              assignment={selectedAssignment}
+            />
           </TabsContent>
 
           {/* Activity Tab Content */}

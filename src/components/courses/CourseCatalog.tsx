@@ -1,6 +1,5 @@
-
 import React, { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { 
@@ -13,6 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Search, Clock, Filter, Calendar } from 'lucide-react';
 import CourseCard from './CourseCard';
+import { Card } from '@/components/ui/card';
 
 export interface Course {
   id: string;
@@ -101,7 +101,26 @@ interface FilterOptions {
   duration: 'all' | 'short' | 'medium' | 'long';
 }
 
-const CourseCatalog = () => {
+interface CourseCatalogProps {
+  onCourseClick: (courseId: string) => void;
+}
+
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const item = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0 }
+};
+
+const CourseCatalog: React.FC<CourseCatalogProps> = ({ onCourseClick }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<FilterOptions>({
     topic: [],
@@ -339,18 +358,30 @@ const CourseCatalog = () => {
           <Button onClick={resetFilters}>Clear Filters</Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <motion.div
+          variants={container}
+          initial="hidden"
+          animate="show"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
           {filteredCourses.map((course, index) => (
             <motion.div
               key={course.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.1 }}
+              variants={item}
+              whileHover={{ 
+                scale: 1.02,
+                rotateX: 5,
+                rotateY: 5,
+                transition: { duration: 0.3 }
+              }}
+              style={{
+                perspective: 1000,
+              }}
             >
-              <CourseCard course={course} />
+              <CourseCard course={course} onCourseClick={onCourseClick} />
             </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
     </div>
   );

@@ -16,6 +16,7 @@ import ProgressPage from "./pages/ProgressPage";
 import ProfilePage from "./pages/ProfilePage";
 import DashboardPage from "./pages/DashboardPage";
 import LanguageFlashcardsPage from "./pages/LanguageFlashcardsPage";
+import CourseDetailPage from '@/pages/CourseDetailPage';
 
 const queryClient = new QueryClient();
 
@@ -128,6 +129,7 @@ const App = () => (
             <Route path="/courses" element={<AnimatedRoute element={<CoursesPage />} />} />
             <Route path="/progress" element={<AnimatedRoute element={<ProgressPage />} />} />
             <Route path="/profile" element={<AnimatedRoute element={<ProfilePage />} />} />
+            <Route path="/course/:courseId" element={<CourseDetailPage />} />
             <Route path="*" element={<AnimatedRoute element={<NotFound />} />} />
           </Routes>
         </BrowserRouter>

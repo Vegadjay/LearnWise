@@ -13,6 +13,13 @@ import { Switch } from '@/components/ui/switch';
 import { Bell, BarChart3, Settings, Activity, CheckCircle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { AnimatePresence } from 'framer-motion';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 interface UserProfile {
   name: string;
@@ -35,6 +42,14 @@ interface SocialLink {
   label: string;
 }
 
+interface Badge {
+  badgename: string;
+  img: string;
+  description: string;
+  earnedDate: string;
+  requirements: string;
+}
+
 const defaultBanner = "/lone-tree.jpg";
 
 const defaultProfile: UserProfile = {
@@ -55,6 +70,7 @@ const ProfilePage: React.FC = () => {
   const [editedProfile, setEditedProfile] = useState<UserProfile>(defaultProfile);
   const [activeTab, setActiveTab] = useState("profile");
   const [showSaveToast, setShowSaveToast] = useState(false);
+  const [selectedBadge, setSelectedBadge] = useState<Badge | null>(null);
 
   useEffect(() => {
     const savedProfile = localStorage.getItem('userProfile');
@@ -77,12 +93,36 @@ const ProfilePage: React.FC = () => {
   }, []);
 
 
-  const badgesShows = [
-    { badgename: "Streak Master", img: '/Badges/Streakmaster.png' },
-    { badgename: "Quiz Champion", img: '/Badges/Quizchampion.png' },
-    { badgename: "Fast Learner", img: '/Badges/Fastlearner.png' },
-    { badgename: "Code Expert", img: '/Badges/Codeexpert.png' },
-  ]
+  const badgesShows: Badge[] = [
+    { 
+      badgename: "Streak Master", 
+      img: '/Badges/Streakmaster.png',
+      description: "Maintained a 7-day learning streak",
+      earnedDate: "2024-03-15",
+      requirements: "Complete daily learning tasks for 7 consecutive days"
+    },
+    { 
+      badgename: "Quiz Champion", 
+      img: '/Badges/Quizchampion.png',
+      description: "Achieved 90% or higher in 5 quizzes",
+      earnedDate: "2024-03-10",
+      requirements: "Score 90% or higher in 5 different quizzes"
+    },
+    { 
+      badgename: "Fast Learner", 
+      img: '/Badges/Fastlearner.png',
+      description: "Completed 10 lessons in one day",
+      earnedDate: "2024-03-05",
+      requirements: "Complete 10 lessons within 24 hours"
+    },
+    { 
+      badgename: "Code Expert", 
+      img: '/Badges/Codeexpert.png',
+      description: "Successfully completed 5 coding challenges",
+      earnedDate: "2024-03-01",
+      requirements: "Complete 5 advanced coding challenges"
+    },
+  ];
 
   const handleSaveProfile = () => {
     // Ensure banner has a value
@@ -176,6 +216,31 @@ const ProfilePage: React.FC = () => {
       }
     }
   };
+
+  // Update the BadgeTooltip component
+  const BadgeTooltip = ({ badge }: { badge: Badge }) => (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="absolute -top-40 left-1/2 transform -translate-x-1/2 bg-black/90 backdrop-blur-sm text-white p-4 rounded-lg shadow-xl w-64 z-50"
+    >
+      <div className="space-y-3">
+        <div className="flex items-center justify-center">
+          <img
+            src={badge.img}
+            alt={badge.badgename}
+            className="h-16 w-16 object-contain"
+          />
+        </div>
+        <h4 className="font-medium text-center text-base">{badge.badgename}</h4>
+        <p className="text-sm text-gray-300 text-center">{badge.description}</p>
+        <div className="text-sm text-gray-400 text-center">
+          Earned: {new Date(badge.earnedDate).toLocaleDateString()}
+        </div>
+      </div>
+      <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-black/90 rotate-45"></div>
+    </motion.div>
+  );
 
   return (
     <AppLayout>
@@ -915,13 +980,13 @@ const ProfilePage: React.FC = () => {
 
                     <div className="pt-8">
                       <h3 className="text-sm font-medium mb-4">Learning Focus Areas</h3>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 gap-4">
                         <div className="space-y-2 relative group cursor-pointer">
                           <div className="flex justify-between text-sm">
                             <span>Frontend Development</span>
                             <span className="font-medium">42%</span>
                           </div>
-                          <div className="h-2 rounded-full bg-muted overflow-hidden">
+                          <div className="h-3 rounded-full bg-muted overflow-hidden">
                             <motion.div
                               initial={{ width: 0 }}
                               animate={{ width: "42%" }}
@@ -929,13 +994,10 @@ const ProfilePage: React.FC = () => {
                               className="h-full bg-primary rounded-full"
                             />
                           </div>
-                          <motion.div
-                            initial={{ opacity: 0 }}
-                            whileHover={{ opacity: 1 }}
-                            className="absolute top-full mt-1 left-0 bg-black text-white text-xs py-1 px-2 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10"
-                          >
+                          <div className="absolute -top-10 left-0 bg-black text-white text-xs py-1 px-2 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
                             HTML, CSS, JavaScript, React
-                          </motion.div>
+                            <div className="absolute -bottom-1 left-4 w-2 h-2 bg-black rotate-45"></div>
+                          </div>
                         </div>
 
                         <div className="space-y-2 relative group cursor-pointer">
@@ -943,7 +1005,7 @@ const ProfilePage: React.FC = () => {
                             <span>Backend Development</span>
                             <span className="font-medium">28%</span>
                           </div>
-                          <div className="h-2 rounded-full bg-muted overflow-hidden">
+                          <div className="h-3 rounded-full bg-muted overflow-hidden">
                             <motion.div
                               initial={{ width: 0 }}
                               animate={{ width: "28%" }}
@@ -951,13 +1013,10 @@ const ProfilePage: React.FC = () => {
                               className="h-full bg-accent rounded-full"
                             />
                           </div>
-                          <motion.div
-                            initial={{ opacity: 0 }}
-                            whileHover={{ opacity: 1 }}
-                            className="absolute top-full mt-1 left-0 bg-black text-white text-xs py-1 px-2 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10"
-                          >
+                          <div className="absolute -top-10 left-0 bg-black text-white text-xs py-1 px-2 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
                             Node.js, Express, APIs, Databases
-                          </motion.div>
+                            <div className="absolute -bottom-1 left-4 w-2 h-2 bg-black rotate-45"></div>
+                          </div>
                         </div>
 
                         <div className="space-y-2 relative group cursor-pointer">
@@ -965,7 +1024,7 @@ const ProfilePage: React.FC = () => {
                             <span>DevOps</span>
                             <span className="font-medium">15%</span>
                           </div>
-                          <div className="h-2 rounded-full bg-muted overflow-hidden">
+                          <div className="h-3 rounded-full bg-muted overflow-hidden">
                             <motion.div
                               initial={{ width: 0 }}
                               animate={{ width: "15%" }}
@@ -973,13 +1032,10 @@ const ProfilePage: React.FC = () => {
                               className="h-full bg-secondary rounded-full"
                             />
                           </div>
-                          <motion.div
-                            initial={{ opacity: 0 }}
-                            whileHover={{ opacity: 1 }}
-                            className="absolute top-full mt-1 left-0 bg-black text-white text-xs py-1 px-2 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10"
-                          >
+                          <div className="absolute -top-10 left-0 bg-black text-white text-xs py-1 px-2 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
                             Docker, CI/CD, Cloud Services
-                          </motion.div>
+                            <div className="absolute -bottom-1 left-4 w-2 h-2 bg-black rotate-45"></div>
+                          </div>
                         </div>
 
                         <div className="space-y-2 relative group cursor-pointer">
@@ -987,7 +1043,7 @@ const ProfilePage: React.FC = () => {
                             <span>Design Systems</span>
                             <span className="font-medium">15%</span>
                           </div>
-                          <div className="h-2 rounded-full bg-muted overflow-hidden">
+                          <div className="h-3 rounded-full bg-muted overflow-hidden">
                             <motion.div
                               initial={{ width: 0 }}
                               animate={{ width: "15%" }}
@@ -995,13 +1051,10 @@ const ProfilePage: React.FC = () => {
                               className="h-full bg-purple-500 rounded-full"
                             />
                           </div>
-                          <motion.div
-                            initial={{ opacity: 0 }}
-                            whileHover={{ opacity: 1 }}
-                            className="absolute top-full mt-1 left-0 bg-black text-white text-xs py-1 px-2 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10"
-                          >
+                          <div className="absolute -top-10 left-0 bg-black text-white text-xs py-1 px-2 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
                             UI Components, Style Guides, Design Tokens
-                          </motion.div>
+                            <div className="absolute -bottom-1 left-4 w-2 h-2 bg-black rotate-45"></div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1010,27 +1063,26 @@ const ProfilePage: React.FC = () => {
                       <h3 className="text-sm font-medium mb-3">Recent Achievement Badges</h3>
                       <div className="flex flex-wrap gap-7">
                         {badgesShows.map((badge, i) => (
-                          <motion.div
+                          <div
                             key={badge.badgename}
-                            whileHover={{ scale: 1.4 }}
                             className="flex flex-col items-center relative group cursor-pointer"
+                            onClick={() => setSelectedBadge(badge)}
                           >
-                            <div className="h-16 w-16 rounded-full flex items-center justify-center shadow-lg overflow-hidden">
+                            <div className="h-20 w-20 rounded-full flex items-center justify-center shadow-lg overflow-hidden bg-white/5 backdrop-blur-sm">
                               <img
                                 src={badge.img}
                                 alt={badge.badgename}
-                                className="h-16 w-16 object-contain"
+                                className="h-20 w-20 object-contain p-2"
                               />
                             </div>
-                            <span className="mt-2 text-xs font-medium text-center">{badge.badgename}</span>
-                            <motion.div
-                              initial={{ opacity: 0, y: -5 }}
-                              whileHover={{ opacity: 1, y: -10 }}
-                              className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs py-1 px-2 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10"
-                            >
-                              Earned on {new Date().toLocaleDateString()}
-                            </motion.div>
-                          </motion.div>
+                            <span className="mt-2 text-sm font-medium text-center">{badge.badgename}</span>
+                            
+                            {/* Simple Click me tooltip */}
+                            <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs py-1 px-2 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                              Click me
+                              <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-black rotate-45"></div>
+                            </div>
+                          </div>
                         ))}
                       </div>
                     </div>
@@ -1055,6 +1107,44 @@ const ProfilePage: React.FC = () => {
             </motion.div>
           )}
         </AnimatePresence>
+
+        <Dialog open={!!selectedBadge} onOpenChange={() => setSelectedBadge(null)}>
+          <DialogContent className="sm:max-w-md">
+            {selectedBadge && (
+              <div className="flex flex-col items-center space-y-4">
+                <div className="h-32 w-32 rounded-full overflow-hidden">
+                  <img
+                    src={selectedBadge.img}
+                    alt={selectedBadge.badgename}
+                    className="h-full w-full object-contain"
+                  />
+                </div>
+                <DialogHeader>
+                  <DialogTitle className="text-center">{selectedBadge.badgename}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 w-full">
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-sm">Description</h4>
+                    <p className="text-sm text-muted-foreground">{selectedBadge.description}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-sm">Earned On</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {new Date(selectedBadge.earnedDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-sm">Requirements</h4>
+                    <p className="text-sm text-muted-foreground">{selectedBadge.requirements}</p>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button onClick={() => setSelectedBadge(null)}>Close</Button>
+                </DialogFooter>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </motion.div>
     </AppLayout>
   );
