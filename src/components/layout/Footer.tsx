@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
-  
+
   return (
     <footer className="border-t py-8 mt-12">
       <div className="max-w-5xl mx-auto px-4">
@@ -20,31 +20,34 @@ const Footer: React.FC = () => {
             <p className="text-muted-foreground mb-4">
               Your personalized learning platform to master new skills through flashcards, quizzes, and habit tracking.
             </p>
+            <p className="text-muted-foreground mb-4">
+              Images are genrated by ChatGPT.
+            </p>
             <div className="flex gap-4">
-              <motion.a 
-                href="#" 
-                whileHover={{ scale: 1.1 }} 
+              <motion.a
+                href="#"
+                whileHover={{ scale: 1.1 }}
                 className="p-2 rounded-full bg-muted/60 text-muted-foreground hover:text-primary transition-colors"
               >
                 <Github size={18} />
               </motion.a>
-              <motion.a 
-                href="#" 
-                whileHover={{ scale: 1.1 }} 
+              <motion.a
+                href="#"
+                whileHover={{ scale: 1.1 }}
                 className="p-2 rounded-full bg-muted/60 text-muted-foreground hover:text-blue-400 transition-colors"
               >
                 <Twitter size={18} />
               </motion.a>
-              <motion.a 
-                href="#" 
-                whileHover={{ scale: 1.1 }} 
+              <motion.a
+                href="#"
+                whileHover={{ scale: 1.1 }}
                 className="p-2 rounded-full bg-muted/60 text-muted-foreground hover:text-blue-700 transition-colors"
               >
                 <Linkedin size={18} />
               </motion.a>
             </div>
           </div>
-          
+
           <div>
             <h4 className="font-medium mb-4">Quick Links</h4>
             <ul className="space-y-2">
@@ -62,7 +65,7 @@ const Footer: React.FC = () => {
               </li>
             </ul>
           </div>
-          
+
           <div>
             <h4 className="font-medium mb-4">Resources</h4>
             <ul className="space-y-2">
@@ -81,7 +84,7 @@ const Footer: React.FC = () => {
             </ul>
           </div>
         </div>
-        
+
         <div className="border-t mt-8 pt-6 flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm text-muted-foreground">© {currentYear} LearnWise. All rights reserved.</p>
           <p className="text-sm text-muted-foreground mt-2 md:mt-0">Made with ❤️ for effective learning</p>

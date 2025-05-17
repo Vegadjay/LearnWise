@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { Book, BarChart, Bookmark, CheckSquare, GraduationCap, Home, ChevronLeft, ChevronRight, User, ArrowLeft } from 'lucide-react';
@@ -13,6 +12,7 @@ export const Sidebar = () => {
   const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isHovering, setIsHovering] = useState(null);
 
   useEffect(() => {
     const checkScreenSize = () => {
@@ -46,48 +46,124 @@ export const Sidebar = () => {
     toast.success('Navigated back');
   };
 
+  // Auto-expand on hover for desktop
+  const handleMouseEnter = () => {
+    if (!isMobile && isCollapsed) {
+      setIsCollapsed(false);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (!isMobile && !isCollapsed) {
+      setIsCollapsed(true);
+    }
+  };
+
+  // Animation variants
+  const sidebarVariants = {
+    expanded: {
+      width: '240px',
+      transition: {
+        duration: 0.3,
+        type: 'spring',
+        stiffness: 100,
+        damping: 15
+      }
+    },
+    collapsed: {
+      width: '80px',
+      transition: {
+        duration: 0.3,
+        type: 'spring',
+        stiffness: 100,
+        damping: 15
+      }
+    }
+  };
+
+  const toggleButtonVariants = {
+    expanded: { rotate: 0 },
+    collapsed: { rotate: 180 }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: i => ({
+      opacity: 1,
+      x: 0,
+      transition: {
+        delay: i * 0.05,
+        duration: 0.25
+      }
+    })
+  };
+
   return (
     <>
-      <motion.aside 
-        className="sidebar border-r bg-card h-screen flex flex-col relative z-20"
+      <motion.aside
+        className="sidebar border-r bg-card h-screen flex flex-col relative z-20 shadow-lg"
         initial={false}
-        animate={{ width: isCollapsed ? '80px' : '240px' }}
-        transition={{ duration: 0.3, ease: 'easeInOut' }}
+        animate={isCollapsed ? 'collapsed' : 'expanded'}
+        variants={sidebarVariants}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       >
-        <button 
-          onClick={toggleSidebar} 
-          className="absolute -right-3 top-6 bg-primary text-white rounded-full p-1 shadow-md z-10 hover:bg-primary/90 transition-colors"
+        <motion.button
+          onClick={toggleSidebar}
+          className="absolute -right-3 top-6 bg-primary text-primary-foreground rounded-full p-1 shadow-md z-10 hover:bg-primary/90 transition-colors"
+          whileHover={{ scale: 1.1, boxShadow: '0px 0px 8px rgba(var(--primary), 0.5)' }}
+          whileTap={{ scale: 0.9 }}
           aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
-          {isCollapsed ? 
-            <ChevronRight className="h-4 w-4" /> : 
+          <motion.div
+            animate={isCollapsed ? 'collapsed' : 'expanded'}
+            variants={toggleButtonVariants}
+          >
             <ChevronLeft className="h-4 w-4" />
-          }
-        </button>
+          </motion.div>
+        </motion.button>
 
         <div className="p-4">
-          <AnimatePresence>
+          <AnimatePresence mode="wait">
             {!isCollapsed && (
-              <motion.div 
+              <motion.div
                 className="flex items-center space-x-2 pb-4"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
               >
-                <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
+                <motion.div
+                  className="h-8 w-8 rounded-full bg-primary flex items-center justify-center"
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  whileTap={{ scale: 0.95 }}
+                  initial={{ rotate: -90 }}
+                  animate={{ rotate: 0 }}
+                  transition={{ duration: 0.5, type: 'spring' }}
+                >
                   <span className="text-primary-foreground font-medium text-lg">L</span>
-                </div>
-                <h1 className="text-xl font-bold text-foreground">LearnWise</h1>
+                </motion.div>
+                <motion.h1
+                  className="text-xl font-bold text-foreground"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.1, duration: 0.3 }}
+                >
+                  LearnWise
+                </motion.h1>
               </motion.div>
             )}
           </AnimatePresence>
 
           {isCollapsed && (
             <div className="flex justify-center pb-4">
-              <motion.div 
+              <motion.div
                 className="h-8 w-8 rounded-full bg-primary flex items-center justify-center"
-                whileHover={{ scale: 1.1 }}
+                whileHover={{ scale: 1.1, rotate: 10 }}
                 whileTap={{ scale: 0.95 }}
+                initial={{ scale: 0.8 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 0.3, type: 'spring' }}
               >
                 <span className="text-primary-foreground font-medium text-lg">L</span>
               </motion.div>
@@ -96,24 +172,49 @@ export const Sidebar = () => {
         </div>
 
         <div className="px-2 mb-4">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
-            className="w-full flex items-center justify-center gap-2 hover:bg-accent"
+            className="w-full flex items-center justify-center gap-2 hover:bg-accent group"
             onClick={handleGoBack}
           >
-            <ArrowLeft className="h-4 w-4" />
-            {!isCollapsed && <span>Go Back</span>}
+            <motion.span
+              whileHover={{ x: -2 }}
+              transition={{ type: "spring", stiffness: 400 }}
+              className="inline-flex items-center"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </motion.span>
+            <AnimatePresence mode="wait">
+              {!isCollapsed && (
+                <motion.span
+                  initial={{ opacity: 0, width: 0 }}
+                  animate={{ opacity: 1, width: "auto" }}
+                  exit={{ opacity: 0, width: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  Go Back
+                </motion.span>
+              )}
+            </AnimatePresence>
           </Button>
         </div>
 
         <nav className="flex-1 overflow-auto px-2">
           <ul className="space-y-1 py-2">
-            {navItems.map((item) => {
+            {navItems.map((item, i) => {
               const isActive = pathname === item.href;
-              
+
               return (
-                <li key={item.name}>
+                <motion.li
+                  key={item.name}
+                  custom={i}
+                  initial="hidden"
+                  animate="visible"
+                  variants={itemVariants}
+                  onMouseEnter={() => setIsHovering(item.name)}
+                  onMouseLeave={() => setIsHovering(null)}
+                >
                   <Link
                     to={item.href}
                     className={cn(
@@ -127,18 +228,34 @@ export const Sidebar = () => {
                       <motion.div
                         className="absolute inset-0 bg-primary z-0"
                         layoutId="sidebar-highlight"
-                        transition={{ type: "spring", duration: 0.5 }}
+                        transition={{
+                          type: "spring",
+                          duration: 0.5,
+                          bounce: 0.2
+                        }}
                         initial={false}
                       />
                     )}
+
+                    {!isActive && isHovering === item.name && (
+                      <motion.div
+                        className="absolute inset-0 bg-accent/70 z-0"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                      />
+                    )}
+
                     <span className="relative z-10 flex items-center gap-x-3">
-                      <motion.div 
-                        whileHover={{ rotate: isActive ? 0 : 10 }}
+                      <motion.div
+                        whileHover={{ rotate: isActive ? 0 : 10, scale: 1.1 }}
+                        whileTap={{ scale: 0.95 }}
                         transition={{ duration: 0.2 }}
                       >
                         {item.icon}
                       </motion.div>
-                      <AnimatePresence initial={false}>
+                      <AnimatePresence mode="wait">
                         {!isCollapsed && (
                           <motion.span
                             initial={{ opacity: 0, width: 0 }}
@@ -153,44 +270,61 @@ export const Sidebar = () => {
                       </AnimatePresence>
                     </span>
                   </Link>
-                </li>
+                </motion.li>
               );
             })}
           </ul>
         </nav>
 
-        <div className="border-t p-4">
+        <motion.div
+          className="border-t p-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
           <div className="flex items-center justify-between">
-            <AnimatePresence>
+            <AnimatePresence mode="wait">
               {!isCollapsed && (
-                <motion.div 
+                <motion.div
                   className="flex items-center space-x-2"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.2 }}
                 >
-                  <div className="h-8 w-8 rounded-full bg-edu-indigo-200 flex items-center justify-center">
+                  <motion.div
+                    className="h-8 w-8 rounded-full bg-edu-indigo-200 flex items-center justify-center"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                    transition={{ duration: 0.2 }}
+                  >
                     <span className="text-edu-indigo-700 font-medium">U</span>
-                  </div>
-                  <div className="flex flex-col">
+                  </motion.div>
+                  <motion.div
+                    className="flex flex-col"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.1 }}
+                  >
                     <p className="text-sm font-medium">User</p>
                     <p className="text-xs text-muted-foreground">student@learn.wise</p>
-                  </div>
+                  </motion.div>
                 </motion.div>
               )}
             </AnimatePresence>
             <ThemeToggle />
           </div>
-        </div>
+        </motion.div>
       </motion.aside>
 
       {/* Mobile overlay when sidebar is open */}
       {isMobile && !isCollapsed && (
         <motion.div
-          className="fixed inset-0 bg-black/50 z-10"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-10"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
           onClick={() => setIsCollapsed(true)}
         />
       )}

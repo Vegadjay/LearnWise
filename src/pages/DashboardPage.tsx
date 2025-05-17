@@ -1,17 +1,16 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { BarChart, BookOpen, CheckSquare, GraduationCap, Activity, Clock, Calendar, TrendingUp, Brain, Trophy, Star, Bell, ChevronRight, Users, Flame } from 'lucide-react';
+import { BarChart, BookOpen, CheckSquare, GraduationCap, Activity, Clock, Calendar, TrendingUp, Brain, Trophy, Star, Bell, ChevronRight, Pencil, Flame } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip } from 'recharts';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip } from 'recharts';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -20,14 +19,15 @@ const DashboardPage = () => {
   const [showStatusMenu, setShowStatusMenu] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [username, setUsername] = useState('');
-  const [avatar, setAvatar] = useState('');
+  const DEFAULT_AVATAR =
+    'https://imgs.search.brave.com/2kBCsI1bSPEEaJySScfqyW0-wlW9x0Uv6K3kTrF-mlk/rs:fit:500:0:0:0/g:ce/aHR0cHM6Ly9oaXBz/LmhlYXJzdGFwcHMu/Y29tL2htZy1wcm9k/L2ltYWdlcy9tYXJr/LXp1Y2tlcmJlcmct/Y2VvLW9mLW1ldGEt/dGVzdGlmaWVzLWJl/Zm9yZS10aGUtc2Vu/YXRlLW5ld3MtcGhv/dG8tMTczOTk5ODU0/NS5wanBlZz9jcm9w/PTAuNTUzeHc6MC44/Mjd4aDswLjI4M3h3/LDAmcmVzaXplPTY0/MDoq';
+  const [avatar, setAvatar] = useState(DEFAULT_AVATAR);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [banner, setBanner] = useState('');
 
   const heroSectionRef = useRef(null);
   const cardsRefs = useRef([]);
 
-  // Track mouse position for glow effects
   useEffect(() => {
     const handleMouseMove = (e) => {
       setMousePosition({ x: e.clientX, y: e.clientY });
@@ -39,7 +39,6 @@ const DashboardPage = () => {
     };
   }, []);
 
-  // Handle window resize
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
@@ -47,9 +46,10 @@ const DashboardPage = () => {
 
     const localToken = localStorage.getItem('userProfile');
     const parsedToken = localToken ? JSON.parse(localToken) : null;
-    setAvatar(parsedToken?.avatar);
+    // Use default avatar if not present or empty
+    setAvatar(parsedToken?.avatar && parsedToken.avatar.trim() !== '' ? parsedToken.avatar : DEFAULT_AVATAR);
     setUsername(parsedToken?.name);
-    setBanner(parsedToken?.banner || '/assets/default-banner.jpg');
+    setBanner(parsedToken?.banner || '/lone-tree.jpg');
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -70,9 +70,13 @@ const DashboardPage = () => {
     const x = mousePosition.x - rect.left;
     const y = mousePosition.y - rect.top;
 
+    // Ensure values are within the card, with a bit of buffer for edge glow
+    const clampedX = Math.max(-50, Math.min(rect.width + 50, x));
+    const clampedY = Math.max(-50, Math.min(rect.height + 50, y));
+
     return {
-      x: `${(x / rect.width) * 100}%`,
-      y: `${(y / rect.height) * 100}%`,
+      x: `${(clampedX / rect.width) * 100}%`,
+      y: `${(clampedY / rect.height) * 100}%`,
     };
   };
 
@@ -157,20 +161,8 @@ const DashboardPage = () => {
     show: { opacity: 1, y: 0 }
   };
 
-  // Confetti pieces
   const confettiColors = ["#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00ffff"];
-  const generateConfetti = () => {
-    return Array.from({ length: 50 }).map((_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: -20 - Math.random() * 100,
-      size: 5 + Math.random() * 10,
-      rotation: Math.random() * 360,
-      color: confettiColors[Math.floor(Math.random() * confettiColors.length)],
-    }));
-  };
 
-  // Custom tooltip for the chart
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
@@ -185,18 +177,9 @@ const DashboardPage = () => {
     return null;
   };
 
-  // Handle status selection
-  const handleStatusChange = (status) => {
-    // Logic to update user status
-    setShowStatusMenu(false);
-  };
-
-  // Enhanced card animation variants
   const cardHoverVariants = {
     initial: { y: 0, scale: 1, boxShadow: "0 1px 3px rgba(0,0,0,0.1)" },
     hover: {
-      y: -10,
-      scale: 1.03,
       boxShadow: "0 12px 24px rgba(0,0,0,0.15)",
       transition: {
         type: "spring",
@@ -218,207 +201,113 @@ const DashboardPage = () => {
   return (
     <AppLayout>
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        {/* Hero Section with Banner and Avatar */}
+        {/* LinkedIn-style Hero Section with Banner and Avatar */}
         <motion.div
           ref={heroSectionRef}
-          className="mb-6 sm:mb-10 bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/5 p-4 sm:p-8 rounded-xl border border-primary/10 relative overflow-hidden"
+          className="mb-6 sm:mb-10 rounded-xl border border-primary/10 relative overflow-hidden"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
         >
-          {/* Banner Image - New addition */}
-          <div
-            className="absolute top-0 left-0 right-0 h-full sm:h-40 md:h-48 bg-cover bg-center rounded-t-xl overflow-hidden"
-            style={{
-              backgroundImage: `url(${banner})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              filter: 'brightness(0.9)'
-            }}
-          >
-            {/* Overlay gradient for better text visibility */}
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/50"></div>
+          {/* Banner */}
+          <div className="relative w-full h-48 sm:h-64 md:h-72 overflow-hidden">
+            <div
+              className="absolute inset-0 bg-cover bg-center"
+              style={{
+                backgroundImage: `url(${banner})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              }}
+            >
+              {/* Subtle overlay for better visibility */}
+              <div className="absolute inset-0 bg-black/10"></div>
+            </div>
           </div>
 
-          <div className="max-w-4xl mx-auto relative mt-16 sm:mt-24">
-            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-8">
-              {/* Avatar with status */}
-              <motion.div
-                className="relative"
-                initial={{ scale: 0, rotate: -180 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{
-                  type: "spring",
-                  stiffness: 260,
-                  damping: 20,
-                  delay: 0.3
-                }}
-              >
-                <div className="relative">
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                  >
-                    <Avatar className="w-20 h-20 sm:w-24 sm:h-24 border-4 border-background shadow-xl">
-                      <AvatarImage src={`${avatar}`} alt="Profile" />
-                      <AvatarFallback>
-                        {username ? username.charAt(0).toUpperCase() : 'U'}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div
-                      className="absolute -inset-1 rounded-full bg-gradient-to-r from-primary/30 via-secondary/30 to-primary/30 blur-md -z-10 opacity-70 group-hover:opacity-100 animate-pulse"
-                    ></div>
-                  </motion.div>
+          {/* Profile section that overlaps the banner */}
+          <div className="px-6 pb-6 pt-0 relative">
+            {/* Avatar that overlaps the banner */}
+            <div className="relative -mt-16 sm:-mt-20 md:-mt-24 mb-4 flex justify-between items-end">
+              <div className="relative group">
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  className="relative"
+                >
+                  <Avatar className="w-28 h-28 sm:w-36 sm:h-36 md:w-40 md:h-40 border-4 border-background rounded-full shadow-xl">
+                    <AvatarImage src={avatar} alt="Profile" />
+                    <AvatarFallback className="text-2xl sm:text-3xl">
+                      {username ? username.charAt(0).toUpperCase() : 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+
+                  {/* Status indicator */}
                   <div
-                    className="absolute bottom-0 right-0 w-6 h-6 bg-green-500 rounded-full border-2 border-background cursor-pointer"
-                    onClick={() => setShowStatusMenu(!showStatusMenu)}
+                    className="absolute bottom-3 right-3 w-5 h-5 bg-green-500 rounded-full border-2 border-background"
                   ></div>
-
-                  {/* Status dropdown */}
-                  <AnimatePresence>
-                    {showStatusMenu && (
-                      <motion.div
-                        className="absolute top-full mt-2 right-0 bg-background rounded-lg shadow-lg border border-border p-2 w-36 z-10"
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                      >
-                        <div
-                          className="flex items-center gap-2 p-2 hover:bg-muted rounded-md cursor-pointer"
-                          onClick={() => handleStatusChange('online')}
-                        >
-                          <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                          <span>Online</span>
-                        </div>
-                        <div
-                          className="flex items-center gap-2 p-2 hover:bg-muted rounded-md cursor-pointer"
-                          onClick={() => handleStatusChange('busy')}
-                        >
-                          <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                          <span>Busy</span>
-                        </div>
-                        <div
-                          className="flex items-center gap-2 p-2 hover:bg-muted rounded-md cursor-pointer"
-                          onClick={() => handleStatusChange('away')}
-                        >
-                          <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                          <span>Away</span>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-
-                {/* Streak counter with confetti */}
-                <motion.div
-                  className="absolute -right-4 -top-2 bg-orange-500 text-white rounded-full px-2 sm:px-3 py-1 text-xs sm:text-sm font-bold flex items-center gap-1 shadow-lg"
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 1, type: "spring" }}
-                  whileHover={{ scale: 1.1 }}
-                >
-                  <Flame className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span>{streakCount} days</span>
-
-                  {/* Confetti animation */}
-                  {showConfetti && (
-                    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                      {generateConfetti().map(confetti => (
-                        <motion.div
-                          key={confetti.id}
-                          className="absolute"
-                          style={{
-                            left: `${confetti.x}%`,
-                            top: `${confetti.y}%`,
-                            width: `${confetti.size}px`,
-                            height: `${confetti.size}px`,
-                            backgroundColor: confetti.color,
-                            borderRadius: '2px',
-                            zIndex: 20,
-                          }}
-                          initial={{
-                            opacity: 1,
-                            y: confetti.y,
-                            x: confetti.x,
-                            rotate: 0
-                          }}
-                          animate={{
-                            opacity: 0,
-                            y: `${200 + Math.random() * 300}%`,
-                            x: `${confetti.x + (Math.random() * 40 - 20)}%`,
-                            rotate: `${Math.random() * 360}deg`
-                          }}
-                          transition={{
-                            duration: 2 + Math.random() * 2,
-                            ease: "easeOut"
-                          }}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </motion.div>
-              </motion.div>
-
-              <div className="text-center sm:text-left">
-                <motion.h1
-                  className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                >
-                  Welcome back, {username || 'Student'}
-                </motion.h1>
-                <motion.p
-                  className="text-base sm:text-lg md:text-xl text-muted-foreground mb-4"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  Your learning journey continues - you're making great progress!
-                </motion.p>
-
-                <motion.div
-                  className="flex flex-wrap justify-center sm:justify-start gap-3 sm:gap-4"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
-                >
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="relative group"
-                  >
-                    <Button
-                      onClick={() => handleNavigation('/flashcards')}
-                      size={isMobile ? "default" : "lg"}
-                      className="gap-2 bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity shadow-md relative z-10"
-                    >
-                      <BookOpen className="h-4 w-4" /> Resume Learning
-                    </Button>
-                    <div className="absolute -inset-1 rounded-lg bg-gradient-to-r from-primary/50 to-secondary/50 blur-md opacity-0 group-hover:opacity-70 transition-opacity duration-300 -z-10"></div>
-                  </motion.div>
-
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="relative group"
-                  >
-                    <Button
-                      variant="outline"
-                      onClick={() => handleNavigation('/profile')}
-                      size={isMobile ? "default" : "lg"}
-                      className="gap-2 border-primary/20 hover:border-primary/50 transition-colors relative z-10"
-                    >
-                      <Activity className="h-4 w-4" /> View Progress
-                    </Button>
-                    <div className="absolute -inset-1 rounded-lg bg-gradient-to-r from-primary/20 to-primary/30 blur-md opacity-0 group-hover:opacity-50 transition-opacity duration-300 -z-10"></div>
-                  </motion.div>
                 </motion.div>
               </div>
 
-              {/* Stats cards */}
+              {/* View profile button */}
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="bg-primary/10 hover:bg-primary/20 text-primary font-medium px-4 py-2 rounded-md flex items-center gap-2"
+                onClick={() => handleNavigation('/profile')}
+              >
+                <Pencil className="h-4 w-4" />
+                <span>Edit Profile</span>
+              </motion.button>
+            </div>
+
+            {/* Profile information in LinkedIn style */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4">
+              <div className="flex-1">
+                <div className="flex items-center gap-3">
+                  <motion.h1
+                    className="text-2xl sm:text-3xl md:text-4xl font-bold"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    {username || 'Mark Zuck'}
+
+                    {/* Streak badge */}
+                    <motion.span
+                      className="inline-block bg-orange-500 text-white rounded-full px-2 sm:px-3 py-1 text-xs sm:text-sm font-bold flex items-center gap-1 shadow-lg align-middle"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ delay: 1, type: "spring" }}
+                      whileHover={{ scale: 1.1 }}
+                    >
+                      <Flame className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span>{streakCount} day streak</span>
+                    </motion.span>
+                  </motion.h1>
+                </div>
+
+                <motion.div
+                  className="mt-4 flex flex-wrap gap-2"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  <Badge className="px-3 py-1 bg-primary/10 text-primary hover:bg-primary/20 cursor-pointer">
+                    JavaScript
+                  </Badge>
+                  <Badge className="px-3 py-1 bg-primary/10 text-primary hover:bg-primary/20 cursor-pointer">
+                    React
+                  </Badge>
+                  <Badge className="px-3 py-1 bg-primary/10 text-primary hover:bg-primary/20 cursor-pointer">
+                    NodeJS
+                  </Badge>
+                  <Badge className="px-3 py-1 bg-primary/10 text-primary hover:bg-primary/20 cursor-pointer">
+                    UI/UX
+                  </Badge>
+                </motion.div>
+              </div>
+
               <motion.div
-                className="flex flex-row sm:flex-col gap-3 mt-4 sm:mt-0 sm:ml-auto"
+                className="flex flex-row sm:flex-col gap-3 mt-4 sm:mt-0"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.5 }}
@@ -453,10 +342,48 @@ const DashboardPage = () => {
                 </motion.div>
               </motion.div>
             </div>
+
+            {/* Action buttons row */}
+            <motion.div
+              className="flex flex-wrap mt-6 gap-3"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+            >
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="relative group"
+              >
+                <Button
+                  onClick={() => handleNavigation('/flashcards')}
+                  size={isMobile ? "default" : "lg"}
+                  className="gap-2 bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity shadow-md relative z-10"
+                >
+                  <BookOpen className="h-4 w-4" /> Resume Learning
+                </Button>
+                <div className="absolute -inset-1 rounded-lg bg-gradient-to-r from-primary/50 to-secondary/50 blur-md opacity-0 group-hover:opacity-70 transition-opacity duration-300 -z-10"></div>
+              </motion.div>
+
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="relative group"
+              >
+                <Button
+                  variant="outline"
+                  onClick={() => handleNavigation('/profile')}
+                  size={isMobile ? "default" : "lg"}
+                  className="gap-2 border-primary/20 hover:border-primary/50 transition-colors relative z-10"
+                >
+                  <Activity className="h-4 w-4" /> View Progress
+                </Button>
+                <div className="absolute -inset-1 rounded-lg bg-gradient-to-r from-primary/20 to-primary/30 blur-md opacity-0 group-hover:opacity-50 transition-opacity duration-300 -z-10"></div>
+              </motion.div>
+            </motion.div>
           </div>
         </motion.div>
 
-        {/* Feature Cards Section */}
         <motion.div
           variants={containerVariants}
           initial="hidden"
@@ -468,34 +395,32 @@ const DashboardPage = () => {
               cardsRefs.current[index] = React.createRef();
             }
 
-            const glowPosition = calculateGlowPosition(cardsRefs.current[index]);
-
             return (
               <motion.div
                 key={feature.title}
-                variants={itemVariants}
+                variants={cardHoverVariants}
                 whileHover="hover"
                 initial="initial"
-                variants={cardHoverVariants}
                 className="transition-all duration-300"
                 ref={cardsRefs.current[index]}
               >
                 <Card className="h-full border border-muted/60 bg-background/50 backdrop-blur-sm hover:shadow-lg hover:border-primary/20 transition-all relative overflow-hidden group">
-                  {/* Enhanced mouse position based glow effect */}
+
                   <div
-                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                    className="absolute inset-0 opacity-0 group-hover:opacity-40 pointer-events-none"
                     style={{
-                      background: `radial-gradient(500px circle at ${glowPosition.x} ${glowPosition.y}, ${feature.glowColor})`,
+                      background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)',
+                      backgroundSize: '200% 100%',
+                      animation: 'shimmer 1.5s infinite',
                     }}
                   />
 
-                  {/* Shimmer effect on hover - new addition */}
+
                   <div
-                    className="absolute inset-0 opacity-0 group-hover:opacity-30 pointer-events-none"
+                    className="absolute inset-0 opacity-0 group-hover:opacity-100 pointer-events-none"
                     style={{
-                      background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
-                      backgroundSize: '200% 100%',
-                      animation: 'shimmer 2s infinite',
+                      background: `radial-gradient(800px circle at center, ${feature.glowColor})`,
+                      animation: 'pulse 2s infinite',
                     }}
                   />
 
@@ -506,7 +431,6 @@ const DashboardPage = () => {
                     <div className="flex justify-between items-start">
                       <motion.div
                         className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg ${feature.color} flex items-center justify-center relative overflow-hidden`}
-                        whileHover={{ rotate: [0, -10, 10, -5, 5, 0] }}
                         transition={{ duration: 0.5 }}
                       >
                         {feature.icon}
@@ -514,7 +438,7 @@ const DashboardPage = () => {
                       </motion.div>
                       <Badge
                         variant="outline"
-                        className={`${index === 0 ? "animate-pulse" : ""} group-hover:bg-background/50 transition-colors duration-300 z-10`}
+                        className={`${index === 0 ? "animate-pulse" : ""} group-hover:bg-background/50 transition-all duration-300 z-10`}
                       >
                         {feature.stats}
                       </Badge>
@@ -547,18 +471,12 @@ const DashboardPage = () => {
                       whileTap={{ scale: 0.97 }}
                     >
                       <Button
-                        variant="outline"
-                        className="w-full group bg-background/80 hover:bg-background/60 text-xs sm:text-sm backdrop-blur-sm z-10"
+                        variant="ghost"
+                        className="w-full justify-between bg-muted/50 hover:bg-muted group-hover:border-primary/20"
                         onClick={() => handleNavigation(feature.link)}
                       >
-                        <span>Open {feature.title}</span>
-                        <motion.span
-                          className="ml-2 inline-block"
-                          animate={{ x: [0, 5, 0] }}
-                          transition={{ duration: 1.5, repeat: Infinity, repeatType: "loop", ease: "easeInOut" }}
-                        >
-                          →
-                        </motion.span>
+                        <span>Explore</span>
+                        <ChevronRight className="h-4 w-4 opacity-70" />
                       </Button>
                     </motion.div>
                   </CardFooter>
@@ -568,247 +486,412 @@ const DashboardPage = () => {
           })}
         </motion.div>
 
-        {/* Stats and Activity Section */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-10">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            className="md:col-span-2"
-            whileHover={cardHoverVariants.hover}
-            initial={cardHoverVariants.initial}
-          >
-            <Card className="h-full relative group overflow-hidden">
-              {/* Enhanced Glow effect for the card on hover */}
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-500 bg-gradient-to-tr from-primary/5 via-transparent to-primary/10"></div>
+        {/* Tabs for Main Content */}
+        <Tabs defaultValue="all" className="mb-6 sm:mb-10" value={selectedTab} onValueChange={setSelectedTab}>
+          <TabsList className="mb-4 w-full sm:w-auto">
+            <TabsTrigger value="all" className="flex-1 sm:flex-initial">Overview</TabsTrigger>
+            <TabsTrigger value="upcoming" className="flex-1 sm:flex-initial">Upcoming</TabsTrigger>
+            <TabsTrigger value="activity" className="flex-1 sm:flex-initial">Activity</TabsTrigger>
+            <TabsTrigger value="stats" className="flex-1 sm:flex-initial">Statistics</TabsTrigger>
+          </TabsList>
 
-              {/* Subtle animated pattern overlay - new addition */}
-              <div className="absolute inset-0 bg-grid-pattern opacity-0 group-hover:opacity-5 transition-opacity duration-300 pointer-events-none"></div>
-
-              <CardHeader className="flex flex-row items-center justify-between pb-2 relative z-10">
-                <div>
-                  <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-                    <Activity className="h-4 w-4 sm:h-5 sm:w-5" />
-                    Learning Statistics
+          <TabsContent value="all">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Main Stats */}
+              <Card className="col-span-1 md:col-span-2 shadow-sm">
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-primary" />
+                    Study Activity
                   </CardTitle>
-                  <CardDescription className="text-xs sm:text-sm">
-                    Your activity over the last 7 days
-                  </CardDescription>
-                </div>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="flex items-center gap-1 bg-primary/10 px-2 py-1 rounded-full text-xs font-medium hidden sm:flex">
-                        <Clock className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                        <span>{weeklyData.reduce((sum, day) => sum + day.minutes, 0)} mins total</span>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Your total study time this week</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </CardHeader>
-              <CardContent className="relative z-10">
-                <div className="h-48 sm:h-56 md:h-64 w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart
-                      data={weeklyData}
-                      margin={{
-                        top: 10,
-                        right: 30,
-                        left: 0,
-                        bottom: 0,
-                      }}
+                  <CardDescription>Your study time over the past week</CardDescription>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={weeklyData} margin={{ top: 20, right: 20, left: 0, bottom: 0 }}>
+                        <defs>
+                          <linearGradient id="studyColor" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#2563eb" stopOpacity={0.4} />
+                            <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                        <XAxis dataKey="day" />
+                        <YAxis unit="min" />
+                        <RechartsTooltip content={<CustomTooltip active={undefined} payload={undefined} label={undefined} />} />
+                        <Area
+                          type="monotone"
+                          dataKey="minutes"
+                          stroke="#2563eb"
+                          fillOpacity={1}
+                          fill="url(#studyColor)"
+                          strokeWidth={2}
+                          activeDot={{ r: 8 }}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+                <CardFooter className="pb-4">
+                  <div className="flex justify-between w-full text-sm">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-muted-foreground">Total this week:</span>
+                      <span className="font-medium">330 minutes</span>
+                    </div>
+                    <Button
+                      variant="link"
+                      className="p-0 h-auto text-primary"
+                      onClick={() => handleNavigation('/progress')}
                     >
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted-foreground) / 0.2)" />
-                      <XAxis dataKey="day" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground) / 0.3)" />
-                      <YAxis
-                        tick={{ fontSize: 12 }}
-                        stroke="hsl(var(--muted-foreground) / 0.3)"
-                        tickFormatter={(value) => `${value}m`}
-                      />
-                      <RechartsTooltip content={<CustomTooltip active={undefined} payload={undefined} label={undefined} />} />
-                      <defs>
-                        <linearGradient id="colorMinutes" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                          <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <Area
-                        type="monotone"
-                        dataKey="minutes"
-                        stroke="hsl(var(--primary))"
-                        fillOpacity={1}
-                        fill="url(#colorMinutes)"
-                        strokeWidth={2}
-                        activeDot={{ r: 6, stroke: 'hsl(var(--background))', strokeWidth: 2 }}
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* Activity and Assignments Tabs */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.6 }}
-            whileHover={{ y: -5 }}
-          >
-            <Card className="h-full relative group overflow-hidden">
-              {/* Glow effect for the card on hover */}
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-500 bg-gradient-to-tr from-secondary/5 via-transparent to-secondary/10"></div>
-
-              <CardHeader className="pb-2 relative z-10">
-                <Tabs defaultValue="activity" onValueChange={setSelectedTab} className="w-full">
-                  <div className="flex items-center justify-between mb-2">
-                    <CardTitle className="text-base sm:text-lg">
-                      {selectedTab === "activity" ? "Recent Activity" : "Upcoming Tasks"}
-                    </CardTitle>
-                    <TabsList className="h-8">
-                      <TabsTrigger value="activity" className="text-xs">Activity</TabsTrigger>
-                      <TabsTrigger value="assignments" className="text-xs">Tasks</TabsTrigger>
-                    </TabsList>
+                      View details
+                    </Button>
                   </div>
-                  <CardDescription className="text-xs sm:text-sm">
-                    {selectedTab === "activity" ?
-                      "Your recent learning activities" :
-                      "Tasks due soon"
-                    }
-                  </CardDescription>
+                </CardFooter>
+              </Card>
 
-                  <TabsContent value="activity" className="mt-2 space-y-0">
-                    <ul className="space-y-2">
-                      {recentActivity.map((item, index) => (
-                        <motion.li
-                          key={index}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.1 }}
-                          className="bg-background/50 hover:bg-background p-2 rounded-md border border-border/50 flex items-center justify-between group"
-                        >
-                          <div className="flex items-center gap-2">
-                            <div className="bg-primary/10 p-1.5 rounded-full">
-                              {item.icon}
-                            </div>
-                            <div>
-                              <p className="text-xs sm:text-sm font-medium">{item.activity}</p>
-                              <p className="text-xs text-muted-foreground">{item.date}</p>
+              <Card className="shadow-sm">
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center gap-2">
+                    <Activity className="h-5 w-5 text-primary" />
+                    Recent Activity
+                  </CardTitle>
+                  <CardDescription>Your latest learning activities</CardDescription>
+                </CardHeader>
+                <CardContent className="pb-0">
+                  <motion.div
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="show"
+                    className="space-y-4"
+                  >
+                    {recentActivity.map((item, i) => (
+                      <motion.div
+                        key={i}
+                        variants={itemVariants}
+                        className="flex items-start gap-3 group"
+                      >
+                        <div className="mt-0.5 p-1.5 rounded-full bg-muted group-hover:bg-primary/10 transition-colors">
+                          {item.icon}
+                        </div>
+                        <div className="space-y-1">
+                          <p className="font-medium text-sm group-hover:text-primary transition-colors">
+                            {item.activity}
+                          </p>
+                          <p className="text-xs text-muted-foreground">{item.date}</p>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                </CardContent>
+                <CardFooter className="pt-4">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-center bg-muted/50 hover:bg-muted"
+                    onClick={() => handleNavigation('/activity')}
+                  >
+                    View all activity
+                  </Button>
+                </CardFooter>
+              </Card>
+
+              {/* Upcoming assignments */}
+              <Card className="col-span-1 md:col-span-2 shadow-sm">
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center gap-2">
+                    <Calendar className="h-5 w-5 text-primary" />
+                    Upcoming Assignments
+                  </CardTitle>
+                  <CardDescription>Tasks that need your attention</CardDescription>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <motion.div
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="show"
+                    className="space-y-3"
+                  >
+                    {upcomingAssignments.map((assignment, i) => (
+                      <motion.div
+                        key={i}
+                        variants={itemVariants}
+                        className="p-3 rounded-lg border border-border/60 bg-background/50 hover:border-primary/20 hover:bg-muted/30 transition-colors flex items-center justify-between group"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2 rounded-full ${assignment.urgency === 'high' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' :
+                            assignment.urgency === 'medium' ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400' :
+                              'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
+                            }`}>
+                            {assignment.icon}
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm">{assignment.title}</p>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <span>{assignment.subject}</span>
+                              <span className="w-1 h-1 rounded-full bg-muted-foreground"></span>
+                              <span>Due: {assignment.dueDate}</span>
                             </div>
                           </div>
-                          <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </motion.li>
-                      ))}
-                    </ul>
-                  </TabsContent>
+                        </div>
+                        <button className="opacity-0 group-hover:opacity-100 transition-opacity">
+                          <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                        </button>
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                </CardContent>
+                <CardFooter className="pt-4">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-center bg-muted/50 hover:bg-muted"
+                    onClick={() => handleNavigation('/assignments')}
+                  >
+                    View all assignments
+                  </Button>
+                </CardFooter>
+              </Card>
 
-                  <TabsContent value="assignments" className="mt-2 space-y-0">
-                    <ul className="space-y-2">
-                      {upcomingAssignments.map((item, index) => (
-                        <motion.li
-                          key={index}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.1 }}
-                          className="bg-background/50 hover:bg-background p-2 rounded-md border border-border/50 flex items-center justify-between group"
-                        >
-                          <div className="flex items-center gap-2">
-                            <div className={`p-1.5 rounded-full ${item.urgency === 'high' ? 'bg-red-500/10' :
-                              item.urgency === 'medium' ? 'bg-yellow-500/10' :
-                                'bg-green-500/10'
-                              }`}>
-                              {item.icon}
-                            </div>
-                            <div>
-                              <p className="text-xs sm:text-sm font-medium">{item.title}</p>
-                              <div className="flex items-center gap-1">
-                                <Badge variant="outline" className="text-xs py-0 h-4">
-                                  {item.subject}
-                                </Badge>
-                                <p className="text-xs text-muted-foreground">Due: {item.dueDate}</p>
-                              </div>
-                            </div>
-                          </div>
-                          <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </motion.li>
-                      ))}
-                    </ul>
-                  </TabsContent>
-                </Tabs>
-              </CardHeader>
-            </Card>
-          </motion.div>
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 1 }}
-        >
-          <Card className="relative group overflow-hidden">
-            {/* Glow effect for the card on hover */}
-            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-500 bg-gradient-to-tr from-teal-500/5 via-transparent to-blue-500/10"></div>
-
-            <CardHeader className="pb-2 relative z-10">
-              <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-                <Brain className="h-4 w-4 sm:h-5 sm:w-5" />
-                Personalized Recommendations
-              </CardTitle>
-              <CardDescription className="text-xs sm:text-sm">
-                Based on your learning habits and preferences
-              </CardDescription>
-            </CardHeader>
-
-            <CardContent className="relative z-10">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  className="border border-border rounded-lg p-3 hover:bg-background/70 transition-colors"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="bg-blue-500/10 p-2 rounded-lg">
-                      <BookOpen className="h-5 w-5 text-blue-500" />
-                    </div>
+              {/* Learning Stats */}
+              <Card className="shadow-sm">
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center gap-2">
+                    <Brain className="h-5 w-5 text-primary" />
+                    Learning Stats
+                  </CardTitle>
+                  <CardDescription>Your progress at a glance</CardDescription>
+                </CardHeader>
+                <CardContent className="pt-0 pb-0">
+                  <div className="space-y-4">
                     <div>
-                      <h4 className="text-sm font-medium mb-1">Complete JavaScript Course</h4>
-                      <p className="text-xs text-muted-foreground mb-2">You're 75% through - finish strong!</p>
-                      <Progress value={75} className="h-1.5 mb-2" />
-                      <Button variant="outline" size="sm" className="text-xs h-7 w-full">
-                        Continue Learning
-                      </Button>
-                    </div>
-                  </div>
-                </motion.div>
-
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  className="border border-border rounded-lg p-3 hover:bg-background/70 transition-colors"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="bg-purple-500/10 p-2 rounded-lg">
-                      <TrendingUp className="h-5 w-5 text-purple-500" />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium mb-1">Try New Data Science Path</h4>
-                      <p className="text-xs text-muted-foreground mb-2">Matches your interests in math and statistics</p>
-                      <div className="flex items-center gap-1 mb-2">
-                        <Badge variant="secondary" className="text-xs">Python</Badge>
-                        <Badge variant="secondary" className="text-xs">ML</Badge>
-                        <Badge variant="secondary" className="text-xs">Beginner</Badge>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span>Weekly Goal</span>
+                        <span className="font-medium">6/7 days</span>
                       </div>
-                      <Button variant="outline" size="sm" className="text-xs h-7 w-full">
-                        Explore Path
-                      </Button>
+                      <Progress value={85.7} className="h-2" />
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span>Flashcards Mastered</span>
+                        <span className="font-medium">192/250</span>
+                      </div>
+                      <Progress value={76.8} className="h-2" />
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span>Quizzes Completed</span>
+                        <span className="font-medium">9/12</span>
+                      </div>
+                      <Progress value={75} className="h-2" />
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span>Course Progress</span>
+                        <span className="font-medium">65%</span>
+                      </div>
+                      <Progress value={65} className="h-2" />
                     </div>
                   </div>
-                </motion.div>
+                </CardContent>
+                <CardFooter className="pt-4">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-center bg-muted/50 hover:bg-muted"
+                    onClick={() => handleNavigation('/stats')}
+                  >
+                    View detailed stats
+                  </Button>
+                </CardFooter>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Upcoming Tab Content */}
+          <TabsContent value="upcoming">
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold">Upcoming Tasks</h2>
+              <div className="grid grid-cols-1 gap-4">
+                {upcomingAssignments.map((assignment, i) => (
+                  <Card key={i} className="shadow-sm hover:shadow-md transition-shadow">
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <div className={`p-1.5 rounded-full ${assignment.urgency === 'high' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' :
+                            assignment.urgency === 'medium' ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400' :
+                              'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
+                            }`}>
+                            {assignment.icon}
+                          </div>
+                          {assignment.title}
+                        </CardTitle>
+                        <Badge variant={assignment.urgency === 'high' ? 'destructive' :
+                          assignment.urgency === 'medium' ? 'warning' : 'outline'}>
+                          {assignment.urgency === 'high' ? 'Urgent' :
+                            assignment.urgency === 'medium' ? 'Soon' : 'Upcoming'}
+                        </Badge>
+                      </div>
+                      <CardDescription>
+                        {assignment.subject} • Due {assignment.dueDate}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardFooter className="flex justify-end pt-0 gap-2">
+                      <Button variant="outline" size="sm">Mark as done</Button>
+                      <Button size="sm">Open assignment</Button>
+                    </CardFooter>
+                  </Card>
+                ))}
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+            </div>
+          </TabsContent>
+
+          {/* Activity Tab Content */}
+          <TabsContent value="activity">
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold">Recent Activity</h2>
+              <div className="grid grid-cols-1 gap-4">
+                {recentActivity.map((item, i) => (
+                  <Card key={i} className="shadow-sm hover:shadow-md transition-shadow">
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-muted rounded-full">
+                          {item.icon}
+                        </div>
+                        <div>
+                          <CardTitle className="text-base">{item.activity}</CardTitle>
+                          <CardDescription>{item.date}</CardDescription>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardFooter className="pt-0">
+                      <Button variant="link" className="p-0 h-auto">
+                        View details
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Stats Tab Content */}
+          <TabsContent value="stats">
+            <div className="space-y-6">
+              <h2 className="text-lg font-semibold">Learning Statistics</h2>
+              <Card className="shadow-sm">
+                <CardHeader>
+                  <CardTitle>Study Time</CardTitle>
+                  <CardDescription>Weekly study time i  n minutes</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-80">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={weeklyData} margin={{ top: 20, right: 20, left: 0, bottom: 0 }}>
+                        <defs>
+                          <linearGradient id="studyColorStats" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#2563eb" stopOpacity={0.4} />
+                            <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                        <XAxis dataKey="day" />
+                        <YAxis unit="min" />
+                        <RechartsTooltip content={<CustomTooltip active={undefined} payload={undefined} label={undefined} />} />
+                        <Area
+                          type="monotone"
+                          dataKey="minutes"
+                          stroke="#2563eb"
+                          fillOpacity={1}
+                          fill="url(#studyColorStats)"
+                          strokeWidth={2}
+                          activeDot={{ r: 8 }}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card className="shadow-sm">
+                  <CardHeader>
+                    <CardTitle>Progress Overview</CardTitle>
+                    <CardDescription>Your learning milestones</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span>Flashcards Mastered</span>
+                        <span className="font-medium">192/250</span>
+                      </div>
+                      <Progress value={76.8} className="h-2" />
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span>Quizzes Completed</span>
+                        <span className="font-medium">9/12</span>
+                      </div>
+                      <Progress value={75} className="h-2" />
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span>Course Progress</span>
+                        <span className="font-medium">65%</span>
+                      </div>
+                      <Progress value={65} className="h-2" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="shadow-sm">
+                  <CardHeader>
+                    <CardTitle>Achievements</CardTitle>
+                    <CardDescription>Your learning badges</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="flex flex-col items-center">
+                        <div className="p-3 bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400 rounded-full mb-2">
+                          <Trophy className="h-6 w-6" />
+                        </div>
+                        <span className="text-xs text-center">15 Day Streak</span>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <div className="p-3 bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 rounded-full mb-2">
+                          <GraduationCap className="h-6 w-6" />
+                        </div>
+                        <span className="text-xs text-center">Quiz Master</span>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <div className="p-3 bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400 rounded-full mb-2">
+                          <BookOpen className="h-6 w-6" />
+                        </div>
+                        <span className="text-xs text-center">Fast Learner</span>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <div className="p-3 bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 rounded-full mb-2">
+                          <CheckSquare className="h-6 w-6" />
+                        </div>
+                        <span className="text-xs text-center">Habit Maker</span>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <div className="p-3 bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 rounded-full mb-2">
+                          <Flame className="h-6 w-6" />
+                        </div>
+                        <span className="text-xs text-center">On Fire</span>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <div className="p-3 bg-teal-100 text-teal-600 dark:bg-teal-900/30 dark:text-teal-400 rounded-full mb-2">
+                          <Star className="h-6 w-6" />
+                        </div>
+                        <span className="text-xs text-center">Super Star</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </AppLayout>
   );

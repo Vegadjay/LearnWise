@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ChevronRight, ThumbsUp, ThumbsDown, Loader2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, ThumbsUp, ThumbsDown, Loader2, Award, RotateCcw, Bookmark, Sparkles } from 'lucide-react';
+import { motion, AnimatePresence, useAnimation, useMotionValue } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 
 interface Flashcard {
   id: string;
@@ -39,7 +40,6 @@ const flashcardsData: { [key: string]: Flashcard[] } = {
     { id: 'py-9', question: 'What are Python modules and packages?', answer: 'A module is a file containing Python code. A package is a directory of Python modules containing an additional __init__.py file, which makes Python treat directories containing the file as packages.' },
     { id: 'py-10', question: 'What is the purpose of the *args and **kwargs parameters?', answer: '*args allows you to pass a variable number of positional arguments. **kwargs allows you to pass a variable number of keyword arguments. Together, they allow a function to accept any number of positional and keyword arguments.' },
   ],
-  // Add more language flashcards here...
   java: [
     { id: 'java-1', question: 'What is the difference between JDK, JRE, and JVM?', answer: 'JDK (Java Development Kit) contains development tools, JRE (Java Runtime Environment) is needed to run Java programs, and JVM (Java Virtual Machine) is an abstract machine that executes Java bytecode.' },
     { id: 'java-2', question: 'What is polymorphism in Java?', answer: 'Polymorphism allows a single interface to represent different underlying forms (data types). In Java, it occurs when a parent class reference is used to refer to a child class object.' },
@@ -62,18 +62,27 @@ const LanguageFlashcardsPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [knownCards, setKnownCards] = useState<string[]>([]);
   const [showAnimation, setShowAnimation] = useState(false);
-  
+  const [confetti, setConfetti] = useState(false);
+  const [streak, setStreak] = useState(0);
+  const [bookmarkedCards, setBookmarkedCards] = useState<string[]>([]);
+  const [isChangingCard, setIsChangingCard] = useState(false);
+  const [sparkleEffects, setSparkleEffects] = useState(false);
+  const [showAnswerButton, setShowAnswerButton] = useState(true); // State for the "Show Answer" button
+
+  const cardControls = useAnimation();
+  const rotateY = useMotionValue(0);
+
   // Get the appropriate flashcards based on the language
   useEffect(() => {
     if (language) {
       const cards = flashcardsData[language] || [];
       setFlashcards(cards);
-      
+
       // Simulate loading delay
       setTimeout(() => {
         setIsLoading(false);
       }, 800);
-      
+
       // Load known cards from localStorage
       const savedKnownCards = localStorage.getItem(`${language}-known-cards`);
       if (savedKnownCards) {
@@ -84,63 +93,166 @@ const LanguageFlashcardsPage = () => {
           setKnownCards([]);
         }
       }
+
+      // Load streak from localStorage
+      const savedStreak = localStorage.getItem(`${language}-streak`);
+      if (savedStreak) {
+        try {
+          setStreak(JSON.parse(savedStreak));
+        } catch (error) {
+          console.error('Error parsing streak from localStorage:', error);
+          setStreak(0);
+        }
+      }
+
+      // Load bookmarked cards from localStorage
+      const savedBookmarkedCards = localStorage.getItem(`${language}-bookmarked-cards`);
+      if (savedBookmarkedCards) {
+        try {
+          setBookmarkedCards(JSON.parse(savedBookmarkedCards));
+        } catch (error) {
+          console.error('Error parsing bookmarked cards from localStorage:', error);
+          setBookmarkedCards([]);
+        }
+      }
     }
   }, [language]);
-  
+
   const handleCardKnown = () => {
-    if (!flashcards[currentCardIndex]) return;
-    
+    if (!flashcards[currentCardIndex] || isChangingCard) return;
+
     const currentCardId = flashcards[currentCardIndex].id;
     const updatedKnownCards = [...knownCards];
-    
+
     if (!knownCards.includes(currentCardId)) {
       updatedKnownCards.push(currentCardId);
       setKnownCards(updatedKnownCards);
       localStorage.setItem(`${language}-known-cards`, JSON.stringify(updatedKnownCards));
-      toast.success("Card marked as known!");
+
+      // Update streak
+      const newStreak = streak + 1;
+      setStreak(newStreak);
+      localStorage.setItem(`${language}-streak`, JSON.stringify(newStreak));
+
+      // Show confetti for milestone streaks
+      if (newStreak > 0 && newStreak % 5 === 0) {
+        setConfetti(true);
+        toast.success(`🎉 ${newStreak} card streak! Keep it up!`);
+        setTimeout(() => setConfetti(false), 3000);
+      } else {
+        toast.success("Card marked as known!");
+      }
     }
-    
+
     setShowAnimation(true);
-    setTimeout(() => {
+    setIsChangingCard(true);
+
+    cardControls.start({
+      x: [0, -20, 400],
+      opacity: [1, 1, 0],
+      transition: { duration: 0.5 }
+    }).then(() => {
       moveToNextCard();
       setShowAnimation(false);
-    }, 400);
+    });
   };
-  
+
   const handleCardUnknown = () => {
-    if (!flashcards[currentCardIndex]) return;
-    
+    if (!flashcards[currentCardIndex] || isChangingCard) return;
+
     const currentCardId = flashcards[currentCardIndex].id;
     const updatedKnownCards = knownCards.filter(id => id !== currentCardId);
-    
+
     setKnownCards(updatedKnownCards);
     localStorage.setItem(`${language}-known-cards`, JSON.stringify(updatedKnownCards));
+
+    // Reset streak
+    setStreak(0);
+    localStorage.setItem(`${language}-streak`, JSON.stringify(0));
+
     toast("You'll see this card again soon.");
-    
+
     setShowAnimation(true);
-    setTimeout(() => {
+    setIsChangingCard(true);
+
+    cardControls.start({
+      x: [0, 20, -400],
+      opacity: [1, 1, 0],
+      transition: { duration: 0.5 }
+    }).then(() => {
       moveToNextCard();
       setShowAnimation(false);
-    }, 400);
+    });
   };
-  
+
   const moveToNextCard = () => {
+    // Ensure we fully reset the card state
     setIsFlipped(false);
-    
+    rotateY.set(0);
+    setShowAnswerButton(true); // Show the "Show Answer" button again
+
     setTimeout(() => {
       if (currentCardIndex < flashcards.length - 1) {
         setCurrentCardIndex(currentCardIndex + 1);
       } else {
         setCurrentCardIndex(0);
         toast.success("You've reviewed all the flashcards! Starting again.", { icon: '🎉' });
+        setSparkleEffects(true);
+        setTimeout(() => setSparkleEffects(false), 2000);
       }
+
+      // Important: Reset the changing card state to allow interactions again
+      setTimeout(() => {
+        setIsChangingCard(false);
+      }, 300);
     }, 300);
   };
-  
-  const toggleFlip = () => {
-    setIsFlipped(!isFlipped);
+
+  const flipCardToShowAnswer = () => {
+    if (isChangingCard) return;
+    setIsFlipped(true);
+    rotateY.set(180);
+    setShowAnswerButton(false); // Hide the "Show Answer" button after flipping
   };
-  
+
+  // Toggle bookmark
+  const toggleBookmark = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card flip if clicked directly on the icon
+
+    if (!flashcards[currentCardIndex] || isChangingCard) return;
+
+    const currentCardId = flashcards[currentCardIndex].id;
+    let updatedBookmarkedCards;
+
+    if (bookmarkedCards.includes(currentCardId)) {
+      updatedBookmarkedCards = bookmarkedCards.filter(id => id !== currentCardId);
+      toast("Bookmark removed");
+    } else {
+      updatedBookmarkedCards = [...bookmarkedCards, currentCardId];
+      toast.success("Card bookmarked for later review!");
+    }
+
+    setBookmarkedCards(updatedBookmarkedCards);
+    localStorage.setItem(`${language}-bookmarked-cards`, JSON.stringify(updatedBookmarkedCards));
+  };
+
+  // Shuffle cards
+  const shuffleCards = () => {
+    if (isChangingCard) return;
+
+    const shuffled = [...flashcards].sort(() => Math.random() - 0.5);
+    setFlashcards(shuffled);
+    setCurrentCardIndex(0);
+    setIsFlipped(false);
+    rotateY.set(0);
+    setShowAnswerButton(true); // Show the "Show Answer" button on shuffle
+    toast("Cards shuffled!");
+
+    // Show sparkles effect on shuffle
+    setSparkleEffects(true);
+    setTimeout(() => setSparkleEffects(false), 2000);
+  };
+
   const getLanguageName = (langKey: string) => {
     const languageMap: { [key: string]: string } = {
       javascript: 'JavaScript',
@@ -152,14 +264,15 @@ const LanguageFlashcardsPage = () => {
       typescript: 'TypeScript',
       react: 'React',
     };
-    
+
     return languageMap[langKey] || langKey;
   };
-  
+
   const currentCard = flashcards[currentCardIndex];
   const progress = flashcards.length > 0 ? ((currentCardIndex + 1) / flashcards.length) * 100 : 0;
   const languageName = language ? getLanguageName(language) : '';
-  
+  const isCurrentCardBookmarked = currentCard ? bookmarkedCards.includes(currentCard.id) : false;
+
   if (isLoading) {
     return (
       <AppLayout>
@@ -207,10 +320,80 @@ const LanguageFlashcardsPage = () => {
       </AppLayout>
     );
   }
-  
+
   return (
     <AppLayout>
       <div className="max-w-4xl mx-auto">
+        {confetti && (
+          <motion.div
+            className="fixed inset-0 pointer-events-none z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            {Array.from({ length: 100 }).map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-2 h-2 rounded-full"
+                initial={{
+                  top: "50%",
+                  left: "50%",
+                  scale: 0,
+                  backgroundColor: ["#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff"][
+                    Math.floor(Math.random() * 5)
+                  ],
+                }}
+                animate={{
+                  top: `${Math.random() * 100}%`,
+                  left: `${Math.random() * 100}%`,
+                  scale: [0, 1, 0],
+                  opacity: [0, 1, 0],
+                }}
+                transition={{
+                  duration: 2 + Math.random() * 2,
+                  ease: "easeOut",
+                  delay: Math.random() * 0.5,
+                }}
+              />
+            ))}
+          </motion.div>
+        )}
+
+        {/* Sparkle effects for shuffle and completion */}
+        {sparkleEffects && (
+          <motion.div
+            className="fixed inset-0 pointer-events-none z-40"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            {Array.from({ length: 30 }).map((_, i) => (
+              <motion.div
+                key={`sparkle-${i}`}
+                className="absolute"
+                initial={{
+                  top: "50%",
+                  left: "50%",
+                  opacity: 0,
+                }}
+                animate={{
+                  top: `${30 + Math.random() * 40}%`,
+                  left: `${30 + Math.random() * 40}%`,
+                  opacity: [0, 1, 0],
+                  scale: [0.5, 1.5, 0],
+                }}
+                transition={{
+                  duration: 1 + Math.random() * 1.5,
+                  ease: "easeOut",
+                  delay: Math.random() * 0.5,
+                }}
+              >
+                <Sparkles className="h-5 w-5 text-yellow-400" />
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+
         <motion.div
           initial={{ x: -20, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
@@ -221,7 +404,7 @@ const LanguageFlashcardsPage = () => {
             <ArrowLeft className="mr-2 h-4 w-4" /> Back to Languages
           </Button>
           <div className="text-right">
-            <motion.h2 
+            <motion.h2
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
@@ -229,7 +412,7 @@ const LanguageFlashcardsPage = () => {
             >
               {languageName} Flashcards
             </motion.h2>
-            <motion.p 
+            <motion.p
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
@@ -239,155 +422,244 @@ const LanguageFlashcardsPage = () => {
             </motion.p>
           </div>
         </motion.div>
-        
+
+        <div className="flex items-center justify-between mb-6">
+          <motion.div
+            whileHover={{ scale: 1.03 }}
+            className="flex items-center gap-2 bg-orange-100 dark:bg-orange-900/20 px-3 py-1.5 rounded-full"
+          >
+            <Award className="h-4 w-4 text-orange-500" />
+            <span className="text-sm font-medium">Streak: {streak}</span>
+          </motion.div>
+
+          <div className="flex gap-2">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-1"
+                onClick={shuffleCards}
+                disabled={isChangingCard}
+              >
+                <RotateCcw className="h-3.5 w-3.5" /> Shuffle
+              </Button>
+            </motion.div>
+          </div>
+        </div>
+
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4 }}
-          className="mb-4 h-2 bg-muted rounded-full overflow-hidden w-full"
+          className="mb-4"
         >
-          <motion.div 
-            className="h-full bg-primary"
-            initial={{ width: 0 }}
-            animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.3 }}
-          />
+          <Progress value={progress} className="h-2" />
         </motion.div>
-        
-        <div className="flashcard-container min-h-[400px] mb-8 perspective-1000" onClick={toggleFlip}>
-          <motion.div 
-            className={`flashcard-inner ${isFlipped ? 'flipped' : ''}`}
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.98 }}
-            animate={showAnimation ? { x: [0, -20, 400] } : {}}
-            transition={showAnimation ? { duration: 0.4 } : {}}
-            style={{ 
-              transformStyle: 'preserve-3d',
-              transition: 'transform 0.6s',
-              transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
-            }}
-          >
-            <AnimatePresence mode="wait">
-              <motion.div 
-                key={`${currentCardIndex}-${isFlipped ? 'back' : 'front'}`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className={`w-full h-full ${isFlipped ? 'flashcard-back' : 'flashcard-front'}`}
+
+        {/* Flashcard container without mouse move tracking */}
+        <div
+          className="flashcard-container min-h-[400px] mb-8"
+          style={{ perspective: "1000px" }}
+        >
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`card-${currentCardIndex}`}
+              className={`flashcard-inner w-full h-full ${isChangingCard ? 'pointer-events-none' : ''}`}
+              style={{
+                transformStyle: "preserve-3d",
+                rotateY,
+                transition: "transform 0.5s ease"
+              }}
+              animate={showAnimation ? cardControls : {}}
+              initial={!isChangingCard ? { opacity: 0, scale: 0.9 } : {}}
+              animate={!showAnimation ? { opacity: 1, scale: 1 } : {}}
+            // Remove onClick from the inner div to prevent automatic flip
+            >
+              <motion.div
+                className="flashcard-front absolute w-full h-full backface-hidden"
                 style={{
-                  backfaceVisibility: 'hidden',
-                  position: 'absolute',
-                  width: '100%',
-                  height: '100%',
-                  transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
+                  backfaceVisibility: "hidden",
+                  rotateY: 0,
                 }}
               >
-                <Card className="h-full shadow-lg dark:bg-card dark:text-card-foreground" data-type={isFlipped ? 'back' : 'front'}>
-                  <CardHeader className="text-center">
+                <Card className="h-full shadow-lg dark:bg-card dark:text-card-foreground relative overflow-hidden">
+                  {/* Background pulse animation - added glow */}
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-100/30 to-transparent dark:via-blue-900/10 z-0"
+                    animate={{
+                      x: ['-100%', '100%'],
+                    }}
+                    transition={{
+                      duration: 8,
+                      repeat: Infinity,
+                      ease: "linear"
+                    }}
+                    style={{
+                      boxShadow: '0 0 20px rgba(59, 130, 246, 0.4), 0 0 30px rgba(59, 130, 246, 0.3)', // Glow effect
+                    }}
+                  />
+                  <CardHeader className="text-center relative z-10">
+                    <motion.div
+                      className="absolute top-3 right-3"
+                      whileHover={{ scale: 1.1, rotate: [0, -10, 10, 0] }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={toggleBookmark}
+                    >
+                      <Bookmark className={`h-5 w-5 cursor-pointer ${isCurrentCardBookmarked ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'}`} />
+                    </motion.div>
                     <CardTitle className="text-lg flex justify-center items-center">
-                      {isFlipped ? 
-                        <Badge variant="secondary" className="px-3 py-1 text-base">Answer</Badge> : 
+                      <motion.div
+                        initial={{ y: -20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: 0.1 }}
+                      >
                         <Badge variant="default" className="px-3 py-1 text-base">Question</Badge>
-                      }
+                      </motion.div>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="flex items-center justify-center p-8 h-[280px] text-center">
+                  <CardContent className="flex items-center justify-center p-8 h-[280px] text-center z-10">
                     <div className="max-h-full overflow-auto">
-                      <p className="text-xl dark:text-white">
-                        {isFlipped ? currentCard?.answer : currentCard?.question}
-                      </p>
+                      <motion.p
+                        className="text-xl dark:text-white"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                      >
+                        {currentCard?.question}
+                      </motion.p>
+                    </div>
+                  </CardContent>
+                  {/* "Show Answer" button */}
+                  {showAnswerButton && (
+                    <div className="absolute bottom-4 left-0 right-0 flex justify-center z-20">
+                      <motion.div
+                        whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(165, 180, 252, 0.6)' }} // Glow on hover
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <Button onClick={flipCardToShowAnswer} disabled={isChangingCard}>
+                          Show Answer
+                        </Button>
+                      </motion.div>
+                    </div>
+                  )}
+                </Card>
+              </motion.div>
+
+              <motion.div
+                className="flashcard-back absolute w-full h-full backface-hidden"
+                style={{
+                  backfaceVisibility: "hidden",
+                  rotateY: 180,
+                }}
+              >
+                <Card className="h-full shadow-lg dark:bg-card dark:text-card-foreground relative overflow-hidden">
+                  {/* Background pulse animation - added glow */}
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-100/20 to-transparent dark:via-purple-900/10 z-0"
+                    animate={{
+                      x: ['-100%', '100%'],
+                    }}
+                    transition={{
+                      duration: 8,
+                      repeat: Infinity,
+                      ease: "linear"
+                    }}
+                    style={{
+                      boxShadow: '0 0 20px rgba(168, 85, 247, 0.4), 0 0 30px rgba(168, 85, 247, 0.3)', // Glow effect
+                    }}
+                  />
+                  <CardHeader className="text-center relative z-10">
+                    <motion.div
+                      className="absolute top-3 right-3"
+                      whileHover={{ scale: 1.1, rotate: [0, -10, 10, 0] }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={toggleBookmark}
+                    >
+                      <Bookmark className={`h-5 w-5 cursor-pointer ${isCurrentCardBookmarked ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'}`} />
+                    </motion.div>
+                    <CardTitle className="text-lg flex justify-center items-center">
+                      <motion.div
+                        initial={{ y: -20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: 0.1 }}
+                      >
+                        <Badge variant="secondary" className="px-3 py-1 text-base">Answer</Badge>
+                      </motion.div>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex items-center justify-center p-8 h-[280px] text-center z-10">
+                    <div className="max-h-full overflow-auto">
+                      <motion.p
+                        className="text-lg dark:text-white"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                      >
+                        {currentCard?.answer}
+                      </motion.p>
                     </div>
                   </CardContent>
                 </Card>
               </motion.div>
-            </AnimatePresence>
-          </motion.div>
-        </div>
-        
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="text-center text-sm text-muted-foreground mb-6"
-        >
-          {isFlipped ? "Click to see the question" : "Click to reveal the answer"}
-        </motion.div>
-        
-        <div className="flex justify-center gap-4">
-          {isFlipped && (
-            <>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Button 
-                  variant="outline" 
-                  onClick={handleCardUnknown}
-                  className="flex items-center gap-2"
-                  size="lg"
-                >
-                  <ThumbsDown className="h-4 w-4" /> Don't Know
-                </Button>
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Button 
-                  onClick={handleCardKnown}
-                  className="flex items-center gap-2 bg-gradient-to-r from-primary to-edu-indigo-500"
-                  size="lg"
-                >
-                  <ThumbsUp className="h-4 w-4" /> Know It
-                </Button>
-              </motion.div>
-            </>
-          )}
-          
-          {!isFlipped && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Button 
-                onClick={toggleFlip}
-                className="flex items-center gap-2"
-                variant="outline"
-                size="lg"
-              >
-                Show Answer <ChevronRight className="h-4 w-4" />
-              </Button>
             </motion.div>
-          )}
+          </AnimatePresence>
         </div>
 
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.5 }}
-          className="mt-16 text-center"
+        {/* Card actions - visible only when flipped */}
+        <AnimatePresence>
+          {!showAnswerButton && (
+            <motion.div
+              className="grid grid-cols-2 gap-4 max-w-xl mx-auto"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              transition={{ duration: 0.4 }}
+            >
+              <motion.div
+                whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(239, 68, 68, 0.6)' }} // Glow on hover
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button
+                  variant="outline"
+                  className="w-full py-6 text-red-500 border-red-200 dark:border-red-900/30 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 flex items-center justify-center gap-2"
+                  onClick={handleCardUnknown}
+                  disabled={isChangingCard}
+                >
+                  <ThumbsDown className="h-5 w-5" />
+                  <span className="text-base">Still Learning</span>
+                </Button>
+              </motion.div>
+
+              <motion.div
+                whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(34, 197, 94, 0.6)' }} // Glow on hover
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button
+                  variant="outline"
+                  className="w-full py-6 text-green-500 border-green-200 dark:border-green-900/30 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 flex items-center justify-center gap-2"
+                  onClick={handleCardKnown}
+                  disabled={isChangingCard}
+                >
+                  <ThumbsUp className="h-5 w-5" />
+                  <span className="text-base">Got It!</span>
+                </Button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+
+        <motion.div
+          className="text-center mt-6 text-sm text-muted-foreground"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
         >
-          <p className="text-sm text-muted-foreground mb-2">
-            Progress: {knownCards.length} of {flashcards.length} cards marked as known
-          </p>
-          <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-            <motion.div 
-              className="h-full bg-green-500"
-              initial={{ width: 0 }}
-              animate={{ width: `${(knownCards.length / flashcards.length) * 100}%` }}
-              transition={{ duration: 0.5, delay: 0.6 }}
-            />
-          </div>
+          <p>Tap the card to flip it (removed)</p> {/* Updated text */}
+          <p className="mt-1">{knownCards.length} of {flashcards.length} cards marked as known</p>
         </motion.div>
       </div>
     </AppLayout>

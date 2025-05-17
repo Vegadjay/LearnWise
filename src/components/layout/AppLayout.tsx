@@ -11,11 +11,11 @@ interface AppLayoutProps {
 
 const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const location = useLocation();
-  
+
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar />
-      <motion.main 
+      <motion.main
         className="flex-1 overflow-auto"
         key={location.pathname}
         initial={{ opacity: 0 }}

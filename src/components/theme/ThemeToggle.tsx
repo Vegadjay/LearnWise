@@ -33,9 +33,9 @@ export function ThemeToggle() {
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
     >
-      <Button 
-        variant="outline" 
-        size="icon" 
+      <Button
+        variant="outline"
+        size="icon"
         onClick={toggleTheme}
         className="rounded-full relative overflow-hidden bg-gradient-to-br from-background to-muted border-primary/20"
         aria-label="Toggle theme"
