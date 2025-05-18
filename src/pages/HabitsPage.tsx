@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
 import { CheckCircle, TrendingUp, BookOpen, Award, Calendar } from 'lucide-react';
+import AnimatedTitle from '../components/AnimatedTitle';
 
 // Register ScrollTrigger plugin
 if (typeof window !== 'undefined') {
@@ -62,18 +63,11 @@ const HabitsPage = () => {
     <AppLayout>
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
         {/* Header Section */}
-        <motion.header 
-          ref={headerRef}
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
-          className="mb-10 text-center"
-        >
-          <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Habit Tracker</h1>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Build consistent routines and track your progress to achieve your learning goals
-          </p>
-        </motion.header>
+        <AnimatedTitle 
+          title="Habit Tracker"
+          subtitle="Build consistent routines and track your progress to achieve your learning goals"
+          className="mb-10"
+        />
         
         {/* Main Tracker Card */}
         <motion.div

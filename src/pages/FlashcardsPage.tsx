@@ -7,6 +7,7 @@ import { BookOpen, Code, Database, Globe, FileText, Cpu, PenTool, BrainCircuit, 
 import { Badge } from '@/components/ui/badge';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import AnimatedTitle from '../components/AnimatedTitle';
 
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger);
@@ -438,16 +439,10 @@ const FlashcardsPage = () => {
     <AppLayout>
       <div className="max-w-6xl mx-auto px-4">
         <header ref={headerRef} className="mb-12 mt-6">
-          <motion.h1 
-            className="text-4xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/80"
-          >
-            Language Flashcards
-          </motion.h1>
-          <motion.p 
-            className="text-lg text-muted-foreground max-w-2xl"
-          >
-            Master programming languages with our adaptive spaced repetition system
-          </motion.p>
+          <AnimatedTitle 
+            title="Flashcards"
+            subtitle="Master your knowledge"
+          />
         </header>
         
         {/* Moving parallax banner */}

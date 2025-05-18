@@ -164,7 +164,7 @@ export const Sidebar = () => {
                     animate={{ rotate: 0 }}
                     transition={{ duration: 0.5, type: 'spring' }}
                   >
-                    <span className="text-primary-foreground font-medium text-lg">L</span>
+                    <img src="/logo.png" alt="" className='rounded-full' />
                   </motion.div>
                   <motion.h1
                     className="text-xl font-bold text-foreground"
@@ -208,7 +208,7 @@ export const Sidebar = () => {
                 animate={{ scale: 1 }}
                 transition={{ duration: 0.3, type: 'spring' }}
               >
-                <span className="text-primary-foreground font-medium text-lg">L</span>
+                <img src="/logo.png" alt="" className='rounded-full' />
               </motion.div>
               <motion.button
                 onClick={toggleLock}

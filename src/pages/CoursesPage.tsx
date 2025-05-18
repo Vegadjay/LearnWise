@@ -4,6 +4,7 @@ import CourseCatalog from '@/components/courses/CourseCatalog';
 import VideoPlayer from '@/components/courses/VideoPlayer';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import AnimatedTitle from '../components/AnimatedTitle';
 
 const CoursesPage: React.FC = () => {
   const [selectedVideoId, setSelectedVideoId] = useState<string | null>(null);
@@ -22,10 +23,10 @@ const CoursesPage: React.FC = () => {
         transition={{ duration: 0.5 }}
         className="max-w-6xl mx-auto"
       >
-        <header className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Course Catalog</h1>
-          <p className="text-muted-foreground">Browse and filter courses by topic and duration</p>
-        </header>
+        <AnimatedTitle 
+          title="Courses"
+          subtitle="Explore our learning materials"
+        />
         
         {selectedVideoId && (
           <div className="mb-8">

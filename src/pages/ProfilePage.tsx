@@ -20,6 +20,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import AnimatedTitle from '../components/AnimatedTitle';
 
 interface UserProfile {
   name: string;
@@ -250,20 +251,11 @@ const ProfilePage: React.FC = () => {
         variants={containerVariants}
         className="max-w-5xl mx-auto px-4 pb-8"
       >
-        <header className="mb-8 mt-6">
-          <motion.h1
-            variants={itemVariants}
-            className="text-3xl font-bold mb-2 bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent"
-          >
-            My Profile
-          </motion.h1>
-          <motion.p
-            variants={itemVariants}
-            className="text-muted-foreground"
-          >
-            Manage your personal information and preferences
-          </motion.p>
-        </header>
+        <AnimatedTitle 
+          title="My Profile"
+          subtitle="Manage your personal information and preferences"
+          className="mb-8"
+        />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <motion.div variants={itemVariants}>

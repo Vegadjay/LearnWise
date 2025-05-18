@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import QuizSession, { QuizResults } from '@/components/quiz/QuizSession';
@@ -11,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import toast from 'react-hot-toast';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
+import AnimatedTitle from '../components/AnimatedTitle';
 
 // Import quiz data - we'll simulate this for now
 import { SAMPLE_QUIZZES } from '@/data/quizData';
@@ -204,20 +204,11 @@ const QuizzesPage = () => {
         animate="visible"
         className="max-w-5xl mx-auto"
       >
-        <header className="mb-8">
-          <div className="flex items-center mb-2">
-            <motion.div
-              initial={{ rotate: 0 }}
-              animate={{ rotate: 360 }}
-              transition={{ duration: 2, ease: "easeInOut", repeat: Infinity, repeatDelay: 10 }}
-              className="mr-3"
-            >
-              <Brain className="h-8 w-8 text-primary" />
-            </motion.div>
-            <h1 className="text-3xl font-bold">Quizzes</h1>
-          </div>
-          <p className="text-muted-foreground">Challenge yourself with our adaptive quizzes to test your knowledge</p>
-        </header>
+        <AnimatedTitle 
+          title="Quizzes"
+          subtitle="Challenge yourself with our adaptive quizzes to test your knowledge"
+          className="mb-8"
+        />
         
         <Card className="mb-8 overflow-hidden card-animated">
           <div className="bg-gradient-to-r from-primary/10 to-secondary/10 py-8 px-6">

@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+import AnimatedTitle from '../components/AnimatedTitle';
 
 const WelcomePage = ({ onComplete }) => {
   const [loading, setLoading] = useState(true);
@@ -119,9 +120,9 @@ const WelcomePage = ({ onComplete }) => {
                 stroke="currentColor"
                 style={{
                   opacity: 1,
-                  strokeDasharray: 1,
-                  strokeDashoffset: 0,
-                  transition: "opacity 2s ease-in-out, stroke-dashoffset 2s ease-in-out",
+                  strokeDasharray: 100,
+                  strokeDashoffset: 100,
+                  animation: "draw 2s ease-in-out forwards",
                 }}
               >
                 <path 
@@ -156,36 +157,11 @@ const WelcomePage = ({ onComplete }) => {
         )}
         
         {/* Typography with clean animation and enhanced visibility */}
-        <div
-          className="text-center"
-          style={{
-            opacity: showLogo ? 1 : 0,
-            transform: `translateY(${showLogo ? 0 : -20}px)`,
-            transition: "opacity 0.8s, transform 0.8s",
-          }}
-        >
-          <h1 
-            className="text-5xl font-light text-white mb-4 tracking-tight"
-            style={{
-              letterSpacing: "0.02em",
-              opacity: 1,
-              textShadow: "0 0 25px rgba(255,255,255,0.5)",
-              transition: "letter-spacing 1.2s, opacity 1.2s",
-            }}
-          >
-            Learn Smart
-          </h1>
-          
-          <p 
-            className="text-gray-300 text-lg mb-14 max-w-md"
-            style={{
-              opacity: 1,
-              transition: "opacity 1s",
-            }}
-          >
-            Elevating your learning experience
-          </p>
-        </div>
+        <AnimatedTitle 
+          title="Learn Smart"
+          subtitle="Elevating your learning experience"
+          className="mb-10"
+        />
         
         {/* MacBook-style progress bar with proper animation */}
         <div
@@ -245,6 +221,12 @@ const WelcomePage = ({ onComplete }) => {
 
       {/* Add global styles for animations */}
       <style jsx global>{`
+        @keyframes draw {
+          to {
+            stroke-dashoffset: 0;
+          }
+        }
+        
         @keyframes pulse {
           0% { opacity: 0.1; transform: scale(1); }
           50% { opacity: 0.3; transform: scale(1.2); }

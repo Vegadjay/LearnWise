@@ -17,6 +17,7 @@ import StudyActivity from '@/components/dashboard/StudyActivity';
 import CoursePreview from '@/components/dashboard/CoursePreview';
 import ActivityTab from '@/components/dashboard/ActivityTab';
 import StatisticsTab from '@/components/dashboard/StatisticsTab';
+import AnimatedTitle from '@/components/AnimatedTitle';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -297,6 +298,11 @@ const DashboardPage = () => {
   return (
     <AppLayout>
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        <AnimatedTitle 
+          title="Dashboard"
+          subtitle="Track your learning progress"
+        />
+
         <HeroSection
           username={username}
           avatar={avatar}
