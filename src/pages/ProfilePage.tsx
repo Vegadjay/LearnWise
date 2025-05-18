@@ -278,16 +278,7 @@ const ProfilePage: React.FC = () => {
                 </motion.div>
                 Settings
               </TabsTrigger>
-              <TabsTrigger value="activity" className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 transition-all">
-                <motion.div
-                  animate={{ rotate: [0, 2, 0, -2, 0] }}
-                  transition={{ repeat: Infinity, duration: 2, repeatDelay: 4 }}
-                  className="inline-block mr-2"
-                >
-                  <Activity size={16} />
-                </motion.div>
-                Learning Activity
-              </TabsTrigger>
+
             </TabsList>
           </motion.div>
 

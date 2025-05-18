@@ -13,7 +13,6 @@ interface CourseCardProps {
 }
 
 const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
-  // Convert duration to hours and minutes
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const remainingMinutes = minutes % 60;
@@ -23,7 +22,6 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
     return `${hours} hr ${remainingMinutes} min`;
   };
   
-  // Determine difficulty badge color
   const difficultyColor = {
     'Beginner': 'bg-green-100 text-green-800 hover:bg-green-100',
     'Intermediate': 'bg-blue-100 text-blue-800 hover:bg-blue-100',

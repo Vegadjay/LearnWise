@@ -5,7 +5,7 @@ import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster as HotToaster } from 'react-hot-toast';
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import FlashcardsPage from "./pages/FlashcardsPage";
@@ -17,17 +17,20 @@ import ProfilePage from "./pages/ProfilePage";
 import DashboardPage from "./pages/DashboardPage";
 import LanguageFlashcardsPage from "./pages/LanguageFlashcardsPage";
 import CourseDetailPage from '@/pages/CourseDetailPage';
+import WelcomePage from '@/pages/WelcomPage';
 
 const queryClient = new QueryClient();
 
-// Cursor glow effect component
+// Enhanced cursor glow effect with better performance
 const CursorGlowEffect = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
 
   useEffect(() => {
     const handleMouseMove = (e) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
+      requestAnimationFrame(() => {
+        setMousePosition({ x: e.clientX, y: e.clientY });
+      });
     };
 
     const handleMouseOver = (e) => {
@@ -70,28 +73,36 @@ const CursorGlowEffect = () => {
   );
 };
 
-// AnimatedRoute component for page transitions
+// Enhanced AnimatedRoute with better transitions
 const AnimatedRoute = ({ element }) => {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.3 }}
-    >
-      {element}
-    </motion.div>
+    <AnimatePresence mode="wait">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        transition={{ 
+          duration: 0.4,
+          ease: [0.4, 0, 0.2, 1]
+        }}
+        className="min-h-screen"
+      >
+        {element}
+      </motion.div>
+    </AnimatePresence>
   );
 };
 
-// Animated navigation link component
+// Enhanced AnimatedNavLink with better hover effects
 const AnimatedNavLink = ({ children }) => {
   return (
     <motion.div
       whileHover={{
         scale: 1.05,
-        filter: "brightness(1.2)"
+        filter: "brightness(1.2)",
+        transition: { duration: 0.2 }
       }}
+      whileTap={{ scale: 0.95 }}
       transition={{ type: "spring", stiffness: 400, damping: 10 }}
     >
       {children}
@@ -99,8 +110,32 @@ const AnimatedNavLink = ({ children }) => {
   );
 };
 
+// Background animation component
+const BackgroundAnimation = () => {
+  return (
+    <div className="fixed inset-0 -z-10 overflow-hidden">
+      <motion.div
+        className="absolute inset-0 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1 }}
+      />
+      <motion.div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: "radial-gradient(circle at 1px 1px, rgba(0,0,0,0.1) 1px, transparent 0)",
+          backgroundSize: "40px 40px",
+        }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.5 }}
+        transition={{ duration: 1, delay: 0.5 }}
+      />
+    </div>
+  );
+};
+
 // Add context for the animated components
-const MotionContext = React.createContext<{ AnimatedNavLink: typeof AnimatedNavLink } | null>(null);
+const MotionContext = React.createContext({ AnimatedNavLink });
 
 const MotionProvider = ({ children }) => {
   return (
@@ -110,32 +145,47 @@ const MotionProvider = ({ children }) => {
   );
 };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <MotionProvider>
-        <Toaster />
-        <Sonner />
-        <HotToaster position="top-right" />
-        <CursorGlowEffect />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<AnimatedRoute element={<DashboardPage />} />} />
-            <Route path="/dashboard" element={<AnimatedRoute element={<DashboardPage />} />} />
-            <Route path="/flashcards" element={<AnimatedRoute element={<FlashcardsPage />} />} />
-            <Route path="/flashcards/:language" element={<AnimatedRoute element={<LanguageFlashcardsPage />} />} />
-            <Route path="/quizzes" element={<AnimatedRoute element={<QuizzesPage />} />} />
-            <Route path="/habits" element={<AnimatedRoute element={<HabitsPage />} />} />
-            <Route path="/courses" element={<AnimatedRoute element={<CoursesPage />} />} />
-            <Route path="/progress" element={<AnimatedRoute element={<ProgressPage />} />} />
-            <Route path="/profile" element={<AnimatedRoute element={<ProfilePage />} />} />
-            <Route path="/course/:courseId" element={<CourseDetailPage />} />
-            <Route path="*" element={<AnimatedRoute element={<NotFound />} />} />
-          </Routes>
-        </BrowserRouter>
-      </MotionProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  const [showWelcome, setShowWelcome] = useState(true);
+  
+  const handleWelcomeComplete = () => {
+    setShowWelcome(false);
+  };
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <MotionProvider>
+          <Toaster />
+          <Sonner />
+          <HotToaster position="top-right" />
+          <CursorGlowEffect />
+          
+          {showWelcome ? (
+            <WelcomePage onComplete={handleWelcomeComplete} />
+          ) : (
+            <>
+              <BackgroundAnimation />
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/" element={<AnimatedRoute element={<DashboardPage />} />} />
+                  <Route path="/dashboard" element={<AnimatedRoute element={<DashboardPage />} />} />
+                  <Route path="/flashcards" element={<AnimatedRoute element={<FlashcardsPage />} />} />
+                  <Route path="/flashcards/:language" element={<AnimatedRoute element={<LanguageFlashcardsPage />} />} />
+                  <Route path="/quizzes" element={<AnimatedRoute element={<QuizzesPage />} />} />
+                  <Route path="/habits" element={<AnimatedRoute element={<HabitsPage />} />} />
+                  <Route path="/courses" element={<AnimatedRoute element={<CoursesPage />} />} />
+                  <Route path="/course/:courseId" element={<AnimatedRoute element={<CourseDetailPage />} />} />
+                  <Route path="/profile" element={<AnimatedRoute element={<ProfilePage />} />} />
+                  <Route path="*" element={<AnimatedRoute element={<NotFound />} />} />
+                </Routes>
+              </BrowserRouter>
+            </>
+          )}
+        </MotionProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

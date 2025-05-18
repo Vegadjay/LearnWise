@@ -10,90 +10,10 @@ import {
   DropdownMenuCheckboxItem, 
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { Search, Clock, Filter, Calendar } from 'lucide-react';
+import { Search, Clock, Filter, Calendar, Youtube } from 'lucide-react';
 import CourseCard from './CourseCard';
-import { Card } from '@/components/ui/card';
+import {SAMPLE_COURSES} from '../../data/courses';
 
-export interface Course {
-  id: string;
-  title: string;
-  description: string;
-  topic: string;
-  subtopics: string[];
-  duration: number; // minutes
-  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
-  imageUrl: string;
-  popularity: number; // 1-5
-}
-
-export const SAMPLE_COURSES: Course[] = [
-  {
-    id: '1',
-    title: 'Introduction to Mathematics',
-    description: 'A beginner-friendly introduction to basic mathematical concepts and principles.',
-    topic: 'Mathematics',
-    subtopics: ['Algebra', 'Geometry'],
-    duration: 120,
-    difficulty: 'Beginner',
-    imageUrl: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb',
-    popularity: 4,
-  },
-  {
-    id: '2',
-    title: 'Advanced Physics Concepts',
-    description: 'Dive deep into advanced physics theories and their practical applications.',
-    topic: 'Physics',
-    subtopics: ['Quantum Mechanics', 'Thermodynamics'],
-    duration: 180,
-    difficulty: 'Advanced',
-    imageUrl: 'https://images.unsplash.com/photo-1636466497217-26a8cbeaf0aa',
-    popularity: 3,
-  },
-  {
-    id: '3',
-    title: 'Organic Chemistry Principles',
-    description: 'Learn the fundamental principles of organic chemistry and molecular structures.',
-    topic: 'Chemistry',
-    subtopics: ['Organic Chemistry', 'Biochemistry'],
-    duration: 90,
-    difficulty: 'Intermediate',
-    imageUrl: 'https://images.unsplash.com/photo-1603126857599-f6e157fa2fe6',
-    popularity: 5,
-  },
-  {
-    id: '4',
-    title: 'Introduction to Biology',
-    description: 'Explore the basics of biology, from cell structure to ecosystems.',
-    topic: 'Biology',
-    subtopics: ['Cell Biology', 'Ecology'],
-    duration: 60,
-    difficulty: 'Beginner',
-    imageUrl: 'https://images.unsplash.com/photo-1530026186672-2cd00ffc50fe',
-    popularity: 4,
-  },
-  {
-    id: '5',
-    title: 'World History Overview',
-    description: 'A comprehensive overview of major historical events and their impact on our world.',
-    topic: 'History',
-    subtopics: ['Ancient Civilizations', 'Modern History'],
-    duration: 150,
-    difficulty: 'Intermediate',
-    imageUrl: 'https://images.unsplash.com/photo-1447069387593-a5de0862481e',
-    popularity: 3,
-  },
-  {
-    id: '6',
-    title: 'English Literature Classics',
-    description: 'Analyze and understand famous works of classic English literature.',
-    topic: 'Literature',
-    subtopics: ['Poetry', 'Novels'],
-    duration: 75,
-    difficulty: 'Intermediate',
-    imageUrl: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8',
-    popularity: 4,
-  },
-];
 
 interface FilterOptions {
   topic: string[];
@@ -102,7 +22,7 @@ interface FilterOptions {
 }
 
 interface CourseCatalogProps {
-  onCourseClick: (courseId: string) => void;
+  onCourseClick: (courseId: string, youtubeVideoId: string) => void; // Updated to include youtubeVideoId
 }
 
 const container = {
@@ -180,8 +100,8 @@ const CourseCatalog: React.FC<CourseCatalogProps> = ({ onCourseClick }) => {
     return result;
   }, [searchQuery, filters, sortBy]);
   
-  const handleCourseClick = (courseId: string) => {
-    onCourseClick(courseId);
+  const handleCourseClick = (course: Course) => {
+    onCourseClick(course.id, course.youtubeVideoId);
   };
 
   const toggleTopicFilter = (topic: string) => {
@@ -382,7 +302,11 @@ const CourseCatalog: React.FC<CourseCatalogProps> = ({ onCourseClick }) => {
                 perspective: 1000,
               }}
             >
-              <CourseCard key={course.id} course={course} onClick={handleCourseClick} />
+              <CourseCard 
+                key={course.id} 
+                course={course} 
+                onClick={() => handleCourseClick(course)} 
+              />
             </motion.div>
           ))}
         </motion.div>

@@ -1,0 +1,1 @@
+// Component for recent activity section
