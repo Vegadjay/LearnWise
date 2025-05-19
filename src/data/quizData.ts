@@ -124,7 +124,7 @@ export const SAMPLE_QUIZZES: { [key: string]: QuizQuestionData[] } = {
       difficulty: 'medium',
     },
   ],
-  
+
   science: [
     {
       id: 'sci-q1',
@@ -247,7 +247,7 @@ export const SAMPLE_QUIZZES: { [key: string]: QuizQuestionData[] } = {
       difficulty: 'easy',
     },
   ],
-  
+
   history: [
     {
       id: 'hist-q1',
@@ -370,7 +370,7 @@ export const SAMPLE_QUIZZES: { [key: string]: QuizQuestionData[] } = {
       difficulty: 'medium',
     },
   ],
-  
+
   programming: [
     {
       id: 'prog-q1',
@@ -493,7 +493,7 @@ export const SAMPLE_QUIZZES: { [key: string]: QuizQuestionData[] } = {
       difficulty: 'hard',
     },
   ],
-  
+
   literature: [
     {
       id: 'lit-q1',
@@ -616,7 +616,7 @@ export const SAMPLE_QUIZZES: { [key: string]: QuizQuestionData[] } = {
       difficulty: 'hard',
     },
   ],
-  
+
   geography: [
     {
       id: 'geo-q1',

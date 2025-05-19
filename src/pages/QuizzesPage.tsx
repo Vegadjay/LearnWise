@@ -17,11 +17,11 @@ import { SAMPLE_QUIZZES } from '@/data/quizData';
 
 const containerVariants = {
   hidden: { opacity: 0, y: 20 },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     y: 0,
-    transition: { 
-      duration: 0.5, 
+    transition: {
+      duration: 0.5,
       staggerChildren: 0.1
     }
   }
@@ -41,7 +41,7 @@ const QuizzesPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [dialogTargetTab, setDialogTargetTab] = useState('');
-  
+
   // Block navigation when quiz is active
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -51,11 +51,11 @@ const QuizzesPage = () => {
         return '';
       }
     };
-    
+
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isBlockNavigation]);
-  
+
   // Handle quiz start
   const startQuiz = () => {
     setQuizStarted(true);
@@ -63,12 +63,12 @@ const QuizzesPage = () => {
     setIsBlockNavigation(true);
     toast.success('Quiz started! Good luck!', { icon: '🚀' });
   };
-  
+
   // Handle quiz completion
   const handleCompleteQuiz = (results: QuizResults) => {
     setQuizResults(results);
     setIsBlockNavigation(false);
-    
+
     // Show toast based on score
     if (results.score >= 80) {
       toast.success('Great job! You scored ' + results.score + '%', { icon: '🏆' });
@@ -78,7 +78,7 @@ const QuizzesPage = () => {
       toast('Keep practicing! You scored ' + results.score + '%', { icon: '📚' });
     }
   };
-  
+
   // Handle quiz restart
   const handleRestartQuiz = () => {
     setQuizStarted(true);
@@ -86,7 +86,7 @@ const QuizzesPage = () => {
     setIsBlockNavigation(true);
     toast('Quiz restarted! Good luck!', { icon: '🔄' });
   };
-  
+
   // Handle tab change
   const handleTabChange = (value: string) => {
     if (quizStarted && !quizResults) {
@@ -94,12 +94,12 @@ const QuizzesPage = () => {
       setDialogTargetTab(value);
       return;
     }
-    
+
     setActiveTab(value);
     setQuizStarted(false);
     setQuizResults(null);
   };
-  
+
   // Confirm tab change
   const confirmTabChange = () => {
     setLeaveQuizDialogOpen(false);
@@ -108,7 +108,7 @@ const QuizzesPage = () => {
     setQuizResults(null);
     setIsBlockNavigation(false);
   };
-  
+
   // Categories and their details
   const categories = [
     {
@@ -165,37 +165,10 @@ const QuizzesPage = () => {
       timeLimit: 210, // 3.5 minutes
       difficulty: 'Easy'
     },
-    {
-      id: 'languages',
-      title: 'Languages Quiz',
-      description: 'Test your knowledge of different languages, grammar, and vocabulary.',
-      icon: <Languages className="h-12 w-12 text-edu-purple-500/70 mb-4" />,
-      color: 'from-edu-purple-500 to-edu-purple-600',
-      timeLimit: 240, // 4 minutes
-      difficulty: 'Medium'
-    },
-    {
-      id: 'computer-science',
-      title: 'Computer Science',
-      description: 'Test your knowledge of algorithms, data structures, and computer theory.',
-      icon: <Database className="h-12 w-12 text-blue-500/70 mb-4" />,
-      color: 'from-blue-500 to-blue-600',
-      timeLimit: 300, // 5 minutes
-      difficulty: 'Hard'
-    },
-    {
-      id: 'general-knowledge',
-      title: 'General Knowledge',
-      description: 'Test your knowledge on a wide variety of topics and trivia.',
-      icon: <GraduationCap className="h-12 w-12 text-green-500/70 mb-4" />,
-      color: 'from-green-500 to-green-600',
-      timeLimit: 270, // 4.5 minutes
-      difficulty: 'Easy'
-    }
   ];
-  
+
   const activeCategory = categories.find(cat => cat.id === activeTab) || categories[0];
-  
+
   return (
     <AppLayout>
       <motion.div
@@ -204,12 +177,12 @@ const QuizzesPage = () => {
         animate="visible"
         className="max-w-5xl mx-auto"
       >
-        <AnimatedTitle 
+        <AnimatedTitle
           title="Quizzes"
           subtitle="Challenge yourself with our adaptive quizzes to test your knowledge"
           className="mb-8"
         />
-        
+
         <Card className="mb-8 overflow-hidden card-animated">
           <div className="bg-gradient-to-r from-primary/10 to-secondary/10 py-8 px-6">
             <div className="max-w-3xl mx-auto text-center">
@@ -220,7 +193,7 @@ const QuizzesPage = () => {
               >
                 <h2 className="text-2xl font-bold mb-2">Knowledge Challenge</h2>
                 <p className="text-muted-foreground mb-6">
-                  Test your skills across different subjects with our interactive quizzes. 
+                  Test your skills across different subjects with our interactive quizzes.
                   Track your progress and improve your knowledge over time.
                 </p>
                 <div className="flex flex-wrap justify-center gap-3">
@@ -240,17 +213,17 @@ const QuizzesPage = () => {
               </motion.div>
             </div>
           </div>
-          
+
           <CardContent className="pt-6">
-            <Tabs 
-              defaultValue="mathematics" 
-              value={activeTab} 
+            <Tabs
+              defaultValue="mathematics"
+              value={activeTab}
               onValueChange={handleTabChange}
             >
               <TabsList className="mb-6 bg-muted/60 flex flex-wrap">
                 {categories.map(category => (
-                  <TabsTrigger 
-                    key={category.id} 
+                  <TabsTrigger
+                    key={category.id}
                     value={category.id}
                     className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                   >
@@ -258,11 +231,11 @@ const QuizzesPage = () => {
                   </TabsTrigger>
                 ))}
               </TabsList>
-              
+
               {categories.map(category => (
                 <TabsContent key={category.id} value={category.id}>
                   {!quizStarted ? (
-                    <motion.div 
+                    <motion.div
                       className="text-center py-12"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -291,8 +264,8 @@ const QuizzesPage = () => {
                         </motion.div>
                         <motion.div whileHover={{ scale: 1.05 }} className="text-center">
                           <Badge variant={
-                            category.difficulty === 'Easy' ? 'success' : 
-                            category.difficulty === 'Medium' ? 'warning' : 'destructive'
+                            category.difficulty === 'Easy' ? 'success' :
+                              category.difficulty === 'Medium' ? 'warning' : 'destructive'
                           } className="text-base px-3 py-1">
                             {category.difficulty}
                           </Badge>
@@ -300,9 +273,9 @@ const QuizzesPage = () => {
                         </motion.div>
                       </div>
                       <motion.div whileHover={{ scale: 1.05 }}>
-                        <Button 
-                          onClick={startQuiz} 
-                          size="lg" 
+                        <Button
+                          onClick={startQuiz}
+                          size="lg"
                           className="gap-2 bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity"
                         >
                           <Play className="h-4 w-4" /> Start Quiz
@@ -310,12 +283,12 @@ const QuizzesPage = () => {
                       </motion.div>
                     </motion.div>
                   ) : (
-                    <motion.div 
+                    <motion.div
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3 }}
                     >
-                      <QuizSession 
+                      <QuizSession
                         questions={SAMPLE_QUIZZES[category.id] || []}
                         onComplete={handleCompleteQuiz}
                         onRestart={handleRestartQuiz}
@@ -328,15 +301,15 @@ const QuizzesPage = () => {
             </Tabs>
           </CardContent>
         </Card>
-        
-        <motion.h2 
+
+        <motion.h2
           variants={itemVariants}
           className="text-2xl font-bold mb-4"
         >
           Explore Quiz Categories
         </motion.h2>
-        
-        <motion.div 
+
+        <motion.div
           variants={containerVariants}
           className="category-grid mb-8"
         >
@@ -344,7 +317,7 @@ const QuizzesPage = () => {
             <motion.div
               key={category.id}
               variants={itemVariants}
-              whileHover={{ 
+              whileHover={{
                 scale: 1.03,
                 transition: { duration: 0.2 }
               }}
@@ -365,8 +338,8 @@ const QuizzesPage = () => {
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg">{category.title}</CardTitle>
                     <Badge variant={
-                      category.difficulty === 'Easy' ? 'success' : 
-                      category.difficulty === 'Medium' ? 'warning' : 'destructive'
+                      category.difficulty === 'Easy' ? 'success' :
+                        category.difficulty === 'Medium' ? 'warning' : 'destructive'
                     }>
                       {category.difficulty}
                     </Badge>
@@ -395,7 +368,7 @@ const QuizzesPage = () => {
             </motion.div>
           ))}
         </motion.div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <motion.div variants={itemVariants}>
             <Card className="card-animated">
@@ -415,7 +388,7 @@ const QuizzesPage = () => {
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="flex gap-4">
                   <div className="flex-shrink-0 bg-secondary/10 rounded-full w-10 h-10 flex items-center justify-center">
                     <BarChart className="h-5 w-5 text-secondary" />
@@ -427,7 +400,7 @@ const QuizzesPage = () => {
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="flex gap-4">
                   <div className="flex-shrink-0 bg-accent/10 rounded-full w-10 h-10 flex items-center justify-center">
                     <Brain className="h-5 w-5 text-accent" />
@@ -442,7 +415,7 @@ const QuizzesPage = () => {
               </CardContent>
             </Card>
           </motion.div>
-          
+
           <motion.div variants={itemVariants}>
             <Card className="card-animated">
               <CardHeader>
@@ -454,17 +427,17 @@ const QuizzesPage = () => {
                   <CheckCircle className="h-5 w-5 text-primary" />
                   <p className="text-sm">Take regular breaks to avoid mental fatigue</p>
                 </div>
-                
+
                 <div className="flex items-center gap-3 p-3 bg-secondary/5 rounded-lg">
                   <CheckCircle className="h-5 w-5 text-secondary" />
                   <p className="text-sm">Review incorrect answers to strengthen knowledge</p>
                 </div>
-                
+
                 <div className="flex items-center gap-3 p-3 bg-accent/5 rounded-lg">
                   <CheckCircle className="h-5 w-5 text-accent" />
                   <p className="text-sm">Use flashcards to complement quiz learning</p>
                 </div>
-                
+
                 <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
                   <CheckCircle className="h-5 w-5 text-muted-foreground" />
                   <p className="text-sm">Set regular study goals using the Habits feature</p>
@@ -481,7 +454,7 @@ const QuizzesPage = () => {
           </motion.div>
         </div>
       </motion.div>
-      
+
       {/* Leave quiz confirmation dialog */}
       <Dialog open={leaveQuizDialogOpen} onOpenChange={setLeaveQuizDialogOpen}>
         <DialogContent>
@@ -498,8 +471,8 @@ const QuizzesPage = () => {
             <Button variant="outline" onClick={() => setLeaveQuizDialogOpen(false)}>
               Continue Quiz
             </Button>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={confirmTabChange}
             >
               Quit Quiz
